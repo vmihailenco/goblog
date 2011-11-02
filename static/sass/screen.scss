@@ -1,0 +1,6 @@
+@import "base";
+
+
+.content {
+  @include fixed-container();
+}

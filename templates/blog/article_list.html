@@ -1,0 +1,10 @@
+{{define "title"}}Articles{{end}}
+
+{{define "content"}}
+<h1>{{template "title"}}</h1>
+
+{{range .articles}}
+  <h2>{{.Title}}</h2>
+  <p>{{.Text}}</p>
+{{end}}
+{{end}}
