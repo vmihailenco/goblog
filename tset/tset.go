@@ -26,12 +26,13 @@ func TemplateSet(name string) (*template.Set, os.Error) {
 		return s, nil
 	}
 
-	s, err := template.ParseSetFiles(TemplatePath(name))
+	s := &template.Set{}
+	s.Funcs(map[string]interface{}{"urlFor": urlFor})
+
+	s, err := s.ParseFiles(TemplatePath(name))
 	if err != nil {
 		return nil, err
 	}
-
-	s.Funcs(map[string]interface{}{"urlFor": urlFor})
 
 	_, err = s.ParseTemplateFiles(TemplatePath("layout.html"))
 	if err != nil {
