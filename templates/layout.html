@@ -4,13 +4,15 @@
 <head>
 <title>{{template "title" .}}</title>
 <link rel="stylesheet" type="text/css" href="/static/stylesheets/screen.css" />
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script type="text/javascript" src="/static/js/menu.js"></script>
 </head>
 
 <body>
 
 <div class="content">
   <ul class="tabs">
-    <li class="active"><a href="{{urlFor "home"}}">Home</a></li>
+    <li><a href="{{urlFor "home"}}">Home</a></li>
     <li><a href="{{urlFor "articleCreate"}}">Add article</a></li>
     <li><a href="{{urlFor "about"}}">About</a></li>
   </ul>
