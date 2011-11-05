@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"appengine"
 	"appengine/datastore"
+	"core"
 )
 
 const (
@@ -28,7 +29,7 @@ func (a *Article) SetKey(key *datastore.Key) {
 }
 
 func (a *Article) URLString() string {
-	return Router.NamedRoutes["article"].URL("id", strconv.Itoa64(a.Key().IntID())).Path
+	return core.Router.NamedRoutes["article"].URL("id", strconv.Itoa64(a.Key().IntID())).Path
 }
 
 func NewArticle(c appengine.Context, title string, text string) (*Article, os.Error) {
