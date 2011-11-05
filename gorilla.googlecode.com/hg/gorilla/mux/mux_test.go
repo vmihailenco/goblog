@@ -1,4 +1,4 @@
-// Copyright 2011 Rodrigo Moraes. All rights reserved.
+// Copyright 2011 Gorilla Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -73,13 +73,13 @@ func TestRouteMatchers(t *testing.T) {
 	var resultVars map[bool]map[string]string
 
 	router := new(Router)
-	router.Host("{var1}.google.com").
+	router.NewRoute().Host("{var1}.google.com").
 		Path("/{var2:[a-z]+}/{var3:[0-9]+}").
 		Queries("foo", "bar").
 		Methods("GET").
 		Schemes("https").
 		Headers("x-requested-with", "XMLHttpRequest")
-	router.Host("www.{var4}.com").
+	router.NewRoute().Host("www.{var4}.com").
 		PathPrefix("/foo/{var5:[a-z]+}/{var6:[0-9]+}").
 		Queries("baz", "ding").
 		Methods("POST").
@@ -132,6 +132,10 @@ func TestRouteMatchers(t *testing.T) {
 		}
 
 		if matched {
+			currentRoute := CurrentRoute(request)
+			if currentRoute == nil {
+				t.Errorf("Expected a current route.")
+			}
 			vars := Vars(request)
 			expectedVars := resultVars[shouldMatch]
 			if len(vars) != len(expectedVars) {
@@ -259,13 +263,13 @@ type hostMatcherTest struct {
 
 var hostMatcherTests = []hostMatcherTest{
 	{
-		matcher: new(Router).Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}"),
+		matcher: new(Router).NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}"),
 		url:     "http://abc.def.ghi/",
 		vars:    map[string]string{"foo": "abc", "bar": "def", "baz": "ghi"},
 		result:  true,
 	},
 	{
-		matcher: new(Router).Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}"),
+		matcher: new(Router).NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}"),
 		url:     "http://a.b.c/",
 		vars:    map[string]string{"foo": "abc", "bar": "def", "baz": "ghi"},
 		result:  false,
@@ -310,13 +314,13 @@ type pathMatcherTest struct {
 
 var pathMatcherTests = []pathMatcherTest{
 	{
-		matcher: new(Router).Path("/{foo:[0-9][0-9][0-9]}/{bar:[0-9][0-9][0-9]}/{baz:[0-9][0-9][0-9]}"),
+		matcher: new(Router).NewRoute().Path("/{foo:[0-9][0-9][0-9]}/{bar:[0-9][0-9][0-9]}/{baz:[0-9][0-9][0-9]}"),
 		url:     "http://localhost:8080/123/456/789",
 		vars:    map[string]string{"foo": "123", "bar": "456", "baz": "789"},
 		result:  true,
 	},
 	{
-		matcher: new(Router).Path("/{foo:[0-9][0-9][0-9]}/{bar:[0-9][0-9][0-9]}/{baz:[0-9][0-9][0-9]}"),
+		matcher: new(Router).NewRoute().Path("/{foo:[0-9][0-9][0-9]}/{bar:[0-9][0-9][0-9]}/{baz:[0-9][0-9][0-9]}"),
 		url:     "http://localhost:8080/1/2/3",
 		vars:    map[string]string{"foo": "123", "bar": "456", "baz": "789"},
 		result:  false,
@@ -557,20 +561,40 @@ func TestUrlBuilding(t *testing.T) {
 	ArticleHandler := func(w http.ResponseWriter, r *http.Request) {
 	}
 
-	HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).Name("article")
+	router := new(Router)
+	router.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).Name("article")
 
-	url := NamedRoutes["article"].URL("category", "technology", "id", "42")
+	url := router.NamedRoutes["article"].URL("category", "technology", "id", "42")
 	expected := "/articles/technology/42"
 	if url.String() != expected {
 		t.Errorf("Expected %v, got %v", expected, url.String())
 	}
 }
 
+func TestMatchedRouteName(t *testing.T) {
+	routeName := "stock"
+	router := new(Router)
+	route := router.NewRoute().Path("/products/").Name(routeName)
+
+	url := "http://www.domain.com/products/"
+	request, _ := http.NewRequest("GET", url, nil)
+	rv, ok := router.Match(request)
+
+	if !ok || rv.Route != route {
+		t.Errorf("Expectd same route, got %+v.", rv.Route)
+	}
+
+	retName := rv.Route.GetName()
+	if retName != routeName {
+		t.Errorf("Expectd %q, got %q.", routeName, retName)
+	}
+}
+
 func TestSubRouting(t *testing.T) {
 	// Example from docs.
 	router := new(Router)
-	subrouter := router.Host("www.domain.com").NewRouter()
-	route := subrouter.Path("/products/").Name("products")
+	subrouter := router.NewRoute().Host("www.domain.com").NewRouter()
+	route := subrouter.NewRoute().Path("/products/").Name("products")
 
 	url := "http://www.domain.com/products/"
 	request, _ := http.NewRequest("GET", url, nil)
@@ -643,6 +667,7 @@ func TestRedirectSlash(t *testing.T) {
 	}
 }
 
+// Test for the new regexp library, still not available in stable Go.
 /*
 func TestNewRegexp(t *testing.T) {
 	var p *parsedTemplate

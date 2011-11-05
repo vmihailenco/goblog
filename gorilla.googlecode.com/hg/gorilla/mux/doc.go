@@ -1,4 +1,4 @@
-// Copyright 2011 Rodrigo Moraes. All rights reserved.
+// Copyright 2011 Gorilla Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -29,9 +29,10 @@ the http.Handler interface or the signature accepted by http.HandleFunc().
 
 The most basic example is to register a couple of URL paths and handlers:
 
-	mux.HandleFunc("/", HomeHandler)
-	mux.HandleFunc("/products", ProductsHandler)
-	mux.HandleFunc("/articles", ArticlesHandler)
+	r := new(mux.Router)
+	r.HandleFunc("/", HomeHandler)
+	r.HandleFunc("/products", ProductsHandler)
+	r.HandleFunc("/articles", ArticlesHandler)
 
 Here we register three routes mapping URL paths to handlers. This is
 equivalent to how http.HandleFunc() works: if an incoming request URL matches
@@ -42,9 +43,10 @@ Paths can have variables. They are defined using the notation {name} or
 {name:pattern}. If a regular expression pattern is not defined, the variable
 will be anything until the next slash. For example:
 
-	mux.HandleFunc("/products/{key}", ProductHandler)
-	mux.HandleFunc("/articles/{category}/", ArticlesCategoryHandler)
-	mux.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler)
+	r := new(mux.Router)
+	r.HandleFunc("/products/{key}", ProductHandler)
+	r.HandleFunc("/articles/{category}/", ArticlesCategoryHandler)
+	r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler)
 
 The names are used to create a map of route variables which can be retrieved
 calling mux.Vars():
@@ -58,38 +60,39 @@ are explained below.
 Routes can also be restricted to a domain or subdomain. Just define a host
 pattern to be matched. They can also have variables:
 
+	r := new(mux.Router)
 	// Only matches if domain is "www.domain.com".
-	mux.HandleFunc("/products", ProductsHandler).Host("www.domain.com")
+	r.HandleFunc("/products", ProductsHandler).Host("www.domain.com")
 	// Matches a dynamic subdomain.
-	mux.HandleFunc("/products", ProductsHandler).
+	r.HandleFunc("/products", ProductsHandler).
 		Host("{subdomain:[a-z]+}.domain.com")
 
 There are several other matchers that can be added. To match HTTP methods:
 
-	mux.HandleFunc("/products", ProductsHandler).Methods("GET", "POST")
+	r.HandleFunc("/products", ProductsHandler).Methods("GET", "POST")
 
 ...or to match a given URL scheme:
 
-	mux.HandleFunc("/products", ProductsHandler).Schemes("https")
+	r.HandleFunc("/products", ProductsHandler).Schemes("https")
 
 ...or to match specific header values:
 
-	mux.HandleFunc("/products", ProductsHandler).
-		Headers("X-Requested-With", "XMLHttpRequest")
+	r.HandleFunc("/products", ProductsHandler).
+	  Headers("X-Requested-With", "XMLHttpRequest")
 
 ...or to match specific URL query values:
 
-	mux.HandleFunc("/products", ProductsHandler).Queries("key", "value")
+	r.HandleFunc("/products", ProductsHandler).Queries("key", "value")
 
 ...or to use a custom matcher function:
 
-	mux.HandleFunc("/products", ProductsHandler).Matcher(MatcherFunc)
+	r.HandleFunc("/products", ProductsHandler).Matcher(MatcherFunc)
 
 ...and finally, it is possible to combine several matchers in a single route:
 
-	mux.HandleFunc("/products", ProductsHandler).
-		Host("www.domain.com").
-		Methods("GET").Schemes("http")
+	r.HandleFunc("/products", ProductsHandler).
+	  Host("www.domain.com").
+	  Methods("GET").Schemes("http")
 
 Setting the same matching conditions again and again can be boring, so we have
 a way to group several routes that share the same requirements.
@@ -99,7 +102,8 @@ For example, let's say we have several URLs that should only match when the
 host is "www.domain.com". We create a route for that host, then add a
 "subrouter" to that route:
 
-	subrouter := mux.Host("www.domain.com").NewRouter()
+	r := new(mux.Router)
+	subrouter := r.NewRoute().Host("www.domain.com").NewRouter()
 
 Then register routes for the host subrouter:
 
@@ -117,14 +121,15 @@ Now let's see how to build registered URLs.
 Routes can be named. All routes that define a name can have their URLs built,
 or "reversed". We define a name calling Name() on a route. For example:
 
-	mux.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
-		Name("article")
+	r := new(mux.Router)
+	r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
+	  Name("article")
 
 Named routes are available in the NamedRoutes field from a router. To build
 a URL, get the route and call the URL() method, passing a sequence of
 key/value pairs for the route variables. For the previous route, we would do:
 
-	url := mux.NamedRoutes["article"].URL("category", "technology", "id", "42")
+	url := r.NamedRoutes["article"].URL("category", "technology", "id", "42")
 
 ...and the result will be a url.URL with the following path:
 
@@ -132,12 +137,14 @@ key/value pairs for the route variables. For the previous route, we would do:
 
 This also works for host variables:
 
-	mux.Host("{subdomain}.domain.com").
-		HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
-		Name("article")
+	r := new(mux.Router)
+	r.NewRoute().
+	  Host("{subdomain}.domain.com").
+	  HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
+	  Name("article")
 
 	// url.String() will be "http://news.domain.com/articles/technology/42"
-	url := mux.NamedRoutes["article"].URL("subdomain", "news",
+	url := r.NamedRoutes["article"].URL("subdomain", "news",
 										  "category", "technology",
 										  "id", "42")
 
@@ -149,10 +156,10 @@ use the methods URLHost() or URLPath() instead. For the previous route,
 we would do:
 
 	// "http://news.domain.com/"
-	host := mux.NamedRoutes["article"].URLHost("subdomain", "news").String()
+	host := r.NamedRoutes["article"].URLHost("subdomain", "news").String()
 
 	// "/articles/technology/42"
-	path := mux.NamedRoutes["article"].URLPath("category", "technology",
+	path := r.NamedRoutes["article"].URLPath("category", "technology",
 											   "id", "42").String()
 */
 package mux

@@ -4,19 +4,21 @@ import (
 	"http"
 	appengineSessions "gorilla.googlecode.com/hg/gorilla/appengine/sessions"
 	"gorilla.googlecode.com/hg/gorilla/sessions"
-	"gorilla.googlecode.com/hg/gorilla/mux"
+	"core"
 )
+
+var Router = core.Router.NewRoute().NewRouter()
 
 func init() {
 	// Register a couple of routes.
-	mux.HandleFunc("/article/create/", ArticleCreateHandler).Name("articleCreate")
-	mux.HandleFunc("/article/list/", ArticleListHandler).Name("articleList")
-	mux.HandleFunc("/articles/{id:[0-9]+}/", ArticleHandler).Name("article")
-	mux.HandleFunc("/about/", AboutHandler).Name("about")
-	mux.HandleFunc("/", ArticleListHandler).Name("home")
+	Router.HandleFunc("/article/create/", ArticleCreateHandler).Name("articleCreate")
+	Router.HandleFunc("/article/list/", ArticleListHandler).Name("articleList")
+	Router.HandleFunc("/articles/{id:[0-9]+}/", ArticleHandler).Name("article")
+	Router.HandleFunc("/about/", AboutHandler).Name("about")
+	Router.HandleFunc("/", ArticleListHandler).Name("home")
 
 	// Send all incoming requests to mux.DefaultRouter.
-	http.Handle("/", mux.DefaultRouter)
+	http.Handle("/", Router)
 
 	// Register the datastore and memcache session stores.
 	sessions.SetStore("datastore", new(appengineSessions.DatastoreSessionStore))
@@ -29,5 +31,4 @@ func init() {
 	sessions.SetStoreKeys("memcache",
 		[]byte("my-secret-key"),
 		[]byte("1234567890123456"))
-
 }

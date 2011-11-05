@@ -6,13 +6,13 @@ import (
 	"template"
 	"httputils"
 	"appengine"
-	"gorilla.googlecode.com/hg/gorilla/mux"
+	"core"
 )
 
 func urlFor(name string, vars ...string) string {
-	route, _ := mux.NamedRoutes[name]
+	route, _ := core.Router.NamedRoutes[name]
 	url := route.URL(vars...)
-	return url.Path
+	return url.String()
 }
 
 func TemplatePath(name string) string {

@@ -1,4 +1,4 @@
-// Copyright 2011 Rodrigo Moraes. All rights reserved.
+// Copyright 2011 Gorilla Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -437,9 +437,6 @@ err os.Error) {
 		}
 	}()
 
-	if t.Kind() == reflect.Slice {
-		t = t.Elem()
-	}
 	if t.Kind() != reflect.Struct {
 		return nil, os.NewError("Not a struct.")
 	}
@@ -559,9 +556,8 @@ func isSupportedType(t reflect.Type) bool {
 	} else {
 		switch t.Kind() {
 		case reflect.Slice:
-			return true
-		case reflect.Struct:
-			return true
+			// Only []anyOfTheBaseTypes.
+			return isSupportedBasicType(t.Elem())
 		case reflect.Map:
 			// Only map[string]anyOfTheBaseTypes.
 			stringKey := t.Key().Kind() == reflect.String
@@ -587,7 +583,8 @@ func isSupportedBasicType(t reflect.Type) bool {
 		reflect.Int64,
 		reflect.String,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32,
-		reflect.Uint64:
+		reflect.Uint64,
+		reflect.Struct:
 		return true
 	}
 	return false

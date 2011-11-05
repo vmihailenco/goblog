@@ -1,4 +1,4 @@
-// Copyright 2011 Rodrigo Moraes. All rights reserved.
+// Copyright 2011 Gorilla Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -441,15 +441,20 @@ type Phone struct {
 }
 
 type Person struct {
-	Name   string
-	Phones []Phone
+	Name    string
+	Phones  []Phone
+	Phones2 map[string]Phone
 }
 
 func TestMultiStructField(t *testing.T) {
 	v := map[string][]string{
-		"Name":          {"Moe"},
-		"Phones.Label":  {"home", "office"},
-		"Phones.Number": {"111-111", "222-222"},
+		"Name":                {"Moe"},
+		"Phones.Label":        {"home", "office"},
+		"Phones.Number":       {"111-111", "222-222"},
+		"Phones2.Home.Label":  {"Home"},
+		"Phones2.Home.Number": {"333-333"},
+		"Phones2.Work.Label":  {"Work"},
+		"Phones2.Work.Number": {"444-444"},
 	}
 
 	person := new(Person)
@@ -479,4 +484,24 @@ func TestMultiStructField(t *testing.T) {
 			t.Errorf("Expected %v, got %v", v["Phones.Number"][1], person.Phones[1].Number)
 		}
 	}
+
+	// Not implemented yet.
+	/*
+		if person.Phones2 == nil || len(person.Phones2) != 2 {
+			t.Errorf("Expected 2 items in person.Phones2, got %v", person.Phones2)
+		} else {
+			if person.Phones2["Home"].Label != v["Phones2.Home.Label"][0] {
+				t.Errorf("Expected %v, got %v", v["Phones2.Home.Label"][0], person.Phones2["Home"].Label)
+			}
+			if person.Phones2["Home"].Number != v["Phones2.Home.Number"][0] {
+				t.Errorf("Expected %v, got %v", v["Phones2.Home.Number"][0], person.Phones2["Home"].Number)
+			}
+			if person.Phones2["Work"].Label != v["Phones2.Work.Label"][0] {
+				t.Errorf("Expected %v, got %v", v["Phones2.Work.Label"][0], person.Phones2["Work"].Label)
+			}
+			if person.Phones2["Work"].Number != v["Phones2.Work.Number"][0] {
+				t.Errorf("Expected %v, got %v", v["Phones2.Work.Number"][0], person.Phones2["Work"].Number)
+			}
+		}
+	*/
 }
