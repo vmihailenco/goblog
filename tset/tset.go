@@ -9,6 +9,8 @@ import (
 	"core"
 )
 
+type Context map[string]interface{}
+
 func urlFor(name string, vars ...string) string {
 	route, _ := core.Router.NamedRoutes[name]
 	url := route.URL(vars...)

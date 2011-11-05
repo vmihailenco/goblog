@@ -4,7 +4,6 @@ import (
 	"strconv"
 	"http"
 	"appengine"
-	"appengine/datastore"
 	"gorilla.googlecode.com/hg/gorilla/mux"
 	"gorilla.googlecode.com/hg/gorilla/schema"
 	"core"
@@ -33,32 +32,19 @@ func ArticleHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tset.RenderTemplate(c, w, "blog/article.html", map[string]interface{}{"article": article})
+	tset.RenderTemplate(c, w, "blog/article.html", tset.Context{"article": article})
 }
 
 func ArticleListHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
-	articles := make([]*Article, 0, 20)
-
 	q := GetArticleQuery().Order("-CreatedOn")
-	for i, t := 0, q.Run(c); ; i++ {
-		article := &Article{}
-		key, err := t.Next(article)
-		if err == datastore.Done {
-			break
-		}
-		if err != nil {
-			httputils.HandleError(c, w, err)
-			return
-
-		}
-		article.SetKey(key)
-		articles = articles[0:i+1]
-		articles[i] = article
+	articles, err := GetArticles(c, q, 20)
+	if err != nil {
+		httputils.HandleError(c, w, err)
+		return
 	}
-
-	tset.RenderTemplate(c, w, "blog/article_list.html", map[string]interface{}{"articles": articles})
+	tset.RenderTemplate(c, w, "blog/article_list.html", tset.Context{"articles": articles})
 }
 
 type ArticleForm struct {

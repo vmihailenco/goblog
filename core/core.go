@@ -4,4 +4,4 @@ import (
 	"gorilla.googlecode.com/hg/gorilla/mux"
 )
 
-var Router = new(mux.Router)
+var Router = &mux.Router{}

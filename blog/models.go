@@ -60,3 +60,22 @@ func GetArticleById(c appengine.Context, id int64) (*Article, os.Error) {
 	}
 	return article, nil
 }
+
+func GetArticles(c appengine.Context, q *datastore.Query, limit int) ([]Article, os.Error) {
+	q = q.Limit(limit)
+	articles := make([]Article, 0, limit)
+	for i, t := 0, q.Run(c); ; i++ {
+		article := Article{}
+		key, err := t.Next(&article)
+		if err == datastore.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		article.SetKey(key)
+		articles = articles[0:i+1]
+		articles[i] = article
+	}
+	return articles, nil
+}
