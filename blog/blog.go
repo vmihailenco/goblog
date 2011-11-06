@@ -7,7 +7,7 @@ import (
 	"core"
 )
 
-var Router = core.Router.NewRoute().NewRouter()
+var Router = core.Router
 
 func init() {
 	// Register a couple of routes.
