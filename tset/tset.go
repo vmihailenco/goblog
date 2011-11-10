@@ -3,6 +3,7 @@ package tset
 import (
 	"os"
 	"fmt"
+	"bytes"
 	"strconv"
 	"http"
 	"template"
@@ -64,9 +65,13 @@ func RenderTemplate(c appengine.Context, w http.ResponseWriter, name string, var
 		return
 	}
 
-	err = s.Execute(w, "layout.html", vars)
+	// use tmp buffer, because Execute can partially render template
+	// before it returns error
+	buf := &bytes.Buffer{}
+	err = s.Execute(buf, "layout.html", vars)
 	if err != nil {
 		httputils.HandleError(c, w, err)
 		return
 	}
+	buf.WriteTo(w)
 }
