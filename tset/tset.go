@@ -2,19 +2,31 @@ package tset
 
 import (
 	"os"
+	"fmt"
+	"strconv"
 	"http"
 	"template"
-	"httputils"
+
 	"appengine"
+
+	"httputils"
 	"core"
 )
 
 type Context map[string]interface{}
 
-func urlFor(name string, vars ...string) string {
+func urlFor(name string, pairs ...interface{}) string {
+	size := len(pairs)
+	strPairs := make([]string, size, size)
+	for i := 0; i < size; i++ {
+		if v, ok := pairs[i].(string); ok {
+			strPairs[i] = v
+		} else {
+			strPairs[i] = fmt.Sprint(pairs[i])
+		}
+	}
 	route, _ := core.Router.NamedRoutes[name]
-	url := route.URL(vars...)
-	return url.String()
+	return route.URL(strPairs...).String()
 }
 
 func TemplatePath(name string) string {
@@ -29,7 +41,7 @@ func TemplateSet(name string) (*template.Set, os.Error) {
 	}
 
 	s := &template.Set{}
-	s.Funcs(map[string]interface{}{"urlFor": urlFor})
+	s.Funcs(map[string]interface{}{"urlFor": urlFor, "Itoa64": strconv.Itoa64})
 
 	s, err := s.ParseFiles(TemplatePath(name))
 	if err != nil {
