@@ -17,7 +17,6 @@ func init() {
 	Router.HandleFunc("/about/", AboutHandler).Name("about")
 	Router.HandleFunc("/", ArticleListHandler).Name("home")
 
-	// Send all incoming requests to mux.DefaultRouter.
 	http.Handle("/", Router)
 
 	// Register the datastore and memcache session stores.

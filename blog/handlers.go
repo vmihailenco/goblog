@@ -8,12 +8,15 @@ import (
 	"gorilla.googlecode.com/hg/gorilla/schema"
 	"core"
 	"httputils"
-	"tset"
+	"layout"
 )
+
+var l = layout.NewLayout("templates", "layout.html")
 
 func AboutHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	tset.RenderTemplate(c, w, "about.html", nil)
+	buf, err := l.Render(nil, "about.html")
+	httputils.ServeBuffer(c, w, buf, err)
 }
 
 func ArticleHandler(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +35,8 @@ func ArticleHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tset.RenderTemplate(c, w, "blog/article.html", tset.Context{"article": article})
+	buf, err := l.Render(layout.Context{"article": article}, "blog/article.html")
+	httputils.ServeBuffer(c, w, buf, err)
 }
 
 func ArticleListHandler(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +48,8 @@ func ArticleListHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.HandleError(c, w, err)
 		return
 	}
-	tset.RenderTemplate(c, w, "blog/article_list.html", tset.Context{"articles": articles})
+	buf, err := l.Render(layout.Context{"articles": articles}, "blog/article_list.html")
+	httputils.ServeBuffer(c, w, buf, err)
 }
 
 type ArticleForm struct {
@@ -77,5 +82,6 @@ func ArticleCreateHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirect_to.Path, 302)
 	}
 
-	tset.RenderTemplate(c, w, "blog/article_create.html", nil)
+	buf, err := l.Render(nil, "blog/article_create.html")
+	httputils.ServeBuffer(c, w, buf, err)
 }
