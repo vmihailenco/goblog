@@ -74,7 +74,7 @@ func GetArticles(c appengine.Context, q *datastore.Query, limit int) ([]Article,
 			return nil, err
 		}
 		article.SetKey(key)
-		articles = articles[0:i+1]
+		articles = articles[0 : i+1]
 		articles[i] = article
 	}
 	return articles, nil

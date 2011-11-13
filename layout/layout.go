@@ -13,9 +13,9 @@ import (
 type Context map[string]interface{}
 
 type Layout struct {
-	basePath string
-	layoutPath string
-	filenames []string
+	basePath         string
+	layoutPath       string
+	filenames        []string
 	templateSetCache map[string]*template.Set
 }
 
@@ -32,7 +32,7 @@ func (l *Layout) NewTemplateSet() (*template.Set, os.Error) {
 	s := &template.Set{}
 	s.Funcs(map[string]interface{}{"urlFor": urlFor})
 
-	if 	_, err := s.ParseTemplateFiles(l.templatePath(l.layoutPath)); err != nil {
+	if _, err := s.ParseTemplateFiles(l.templatePath(l.layoutPath)); err != nil {
 		return nil, err
 	}
 
