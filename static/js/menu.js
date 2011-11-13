@@ -48,6 +48,6 @@
     }
   };
   $(function() {
-    return mark_active_path($('.tabs'));
+    return mark_active_path($('#primary_nav'));
   });
 }).call(this);

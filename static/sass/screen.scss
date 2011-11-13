@@ -2,5 +2,6 @@
 
 
 .content {
+  padding-top: 60px;
   @include fixed-container();
 }

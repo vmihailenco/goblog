@@ -3058,6 +3058,7 @@ input[type=submit].btn::-moz-focus-inner {
 
 /* line 4, ../sass/screen.scss */
 .content {
+  padding-top: 60px;
   width: 940px;
   margin-left: auto;
   margin-right: auto;

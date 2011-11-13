@@ -10,13 +10,29 @@
 
 <body>
 
-<div class="content">
-  <ul class="tabs">
-    <li><a href="{{urlFor "home"}}">Home</a></li>
-    <li><a href="{{urlFor "articleCreate"}}">Add article</a></li>
-    <li><a href="{{urlFor "about"}}">About</a></li>
-  </ul>
+<div class="topbar-wrapper" style="z-index: 5;">
+  <div class="topbar" data-dropdown="dropdown" >
+    <div class="topbar-inner">
+      <div class="container">
+        <ul class="nav" id="primary_nav">
+          <li><a href="{{urlFor "home"}}">Home</a></li>
+          <li><a href="{{urlFor "articleCreate"}}">Add article</a></li>
+          <li><a href="{{urlFor "about"}}">About</a></li>
+        </ul>
+        <ul class="nav secondary-nav">
+          {{if .user.IsAuthenticated}}
+            <li><a href="">{{.user.Name}}</a></li>
+            <li><a href="{{logoutUrl . "/"}}" class="logout">log out</a></li>
+          {{else}}
+            <li><a href="{{loginUrl . "/"}}">Login</a></li>
+          {{end}}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
 
+<div class="content">
   {{template "content" .}}
 </div>
 

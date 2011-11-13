@@ -39,4 +39,4 @@ mark_active_path = ($container, exact_match=false) ->
     $active.addClass('active')
 
 $ ->
-  mark_active_path $('.tabs')
+  mark_active_path $('#primary_nav')
