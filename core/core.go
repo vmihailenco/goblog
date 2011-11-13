@@ -5,10 +5,15 @@ import (
 	"fmt"
 	"template"
 	"runtime/debug"
+	"http"
 
+	"appengine"
+	"appengine/user"
 	"gorilla.googlecode.com/hg/gorilla/mux"
 
+	"httputils"
 	"tmplt"
+	"auth"
 )
 
 var Router = &mux.Router{}
@@ -38,4 +43,43 @@ func urlFor(name string, pairs ...interface{}) string {
 	return route.URL(strPairs...).String()
 }
 
-var Layout = tmplt.NewLayout("templates", "layout.html").SetFuncMap(template.FuncMap{"urlFor": urlFor})
+func loginUrl(context tmplt.Context, redirectTo string) (string, os.Error) {
+	defer TemplateFuncRecover()
+	c := context["appengineContext"].(appengine.Context)
+	return user.LoginURL(c, redirectTo)
+}
+
+func logoutUrl(context tmplt.Context, redirectTo string) (string, os.Error) {
+	defer TemplateFuncRecover()
+	c := context["appengineContext"].(appengine.Context)
+	return user.LogoutURL(c, redirectTo)
+}
+
+func isAdmin(context tmplt.Context) bool {
+	defer TemplateFuncRecover()
+	c := context["appengineContext"].(appengine.Context)
+	return user.IsAdmin(c)
+}
+
+var Layout = tmplt.NewLayout("templates", "layout.html").
+	SetFuncMap(template.FuncMap{
+	"urlFor":    urlFor,
+	"loginUrl":  loginUrl,
+	"logoutUrl": logoutUrl})
+
+func RenderTemplate(c appengine.Context, w http.ResponseWriter, context tmplt.Context, filename string) {
+	if context == nil {
+		context = tmplt.Context{}
+	}
+	context["appengineContext"] = c
+
+	u, err := auth.CurrentUser(c)
+	if err != nil {
+		httputils.HandleError(c, w, err)
+		return
+	}
+	context["user"] = u
+
+	buf, err := Layout.Render(context, filename)
+	httputils.ServeBuffer(c, w, buf, err)
+}

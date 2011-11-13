@@ -3,8 +3,8 @@ package blog
 import (
 	"strconv"
 	"http"
-	"appengine"
 
+	"appengine"
 	"gorilla.googlecode.com/hg/gorilla/mux"
 	"gorilla.googlecode.com/hg/gorilla/schema"
 
@@ -17,8 +17,7 @@ var Layout = core.Layout.NewLayout().SetFilenames("blog/base.html")
 
 func AboutHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	buf, err := Layout.Render(nil, "about.html")
-	httputils.ServeBuffer(c, w, buf, err)
+	core.RenderTemplate(c, w, nil, "about.html")
 }
 
 func ArticleHandler(w http.ResponseWriter, r *http.Request) {
@@ -37,8 +36,8 @@ func ArticleHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	buf, err := Layout.Render(tmplt.Context{"article": article}, "blog/article.html")
-	httputils.ServeBuffer(c, w, buf, err)
+	context := tmplt.Context{"article": article}
+	core.RenderTemplate(c, w, context, "blog/article.html")
 }
 
 func ArticleListHandler(w http.ResponseWriter, r *http.Request) {
@@ -50,8 +49,9 @@ func ArticleListHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.HandleError(c, w, err)
 		return
 	}
-	buf, err := Layout.Render(tmplt.Context{"articles": articles}, "blog/article_list.html")
-	httputils.ServeBuffer(c, w, buf, err)
+
+	context := tmplt.Context{"articles": articles}
+	core.RenderTemplate(c, w, context, "blog/article_list.html")
 }
 
 type ArticleForm struct {
@@ -80,10 +80,10 @@ func ArticleCreateHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		redirect_to := core.Router.NamedRoutes["article"].URL("id", strconv.Itoa64(a.Key().IntID()))
+		redirect_to := core.Router.NamedRoutes["article"].
+			URL("id", strconv.Itoa64(a.Key().IntID()))
 		http.Redirect(w, r, redirect_to.Path, 302)
 	}
 
-	buf, err := Layout.Render(nil, "blog/article_create.html")
-	httputils.ServeBuffer(c, w, buf, err)
+	core.RenderTemplate(c, w, nil, "blog/article_create.html")
 }
