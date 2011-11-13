@@ -7,13 +7,13 @@ import (
 
 	"appengine"
 
-	"layout"
+	"tmplt"
 )
 
-var l = layout.NewLayout("templates", "500.html")
+var layout = tmplt.NewLayout("templates", "500.html")
 
 func HandleError(c appengine.Context, w http.ResponseWriter, err os.Error) {
-	buf, err := l.Render(layout.Context{"err": err}, "")
+	buf, err := layout.Render(tmplt.Context{"err": err}, "")
 	if err != nil {
 		c.Criticalf("%v", err)
 	}

@@ -4,18 +4,20 @@ import (
 	"strconv"
 	"http"
 	"appengine"
+
 	"gorilla.googlecode.com/hg/gorilla/mux"
 	"gorilla.googlecode.com/hg/gorilla/schema"
+
 	"core"
+	"tmplt"
 	"httputils"
-	"layout"
 )
 
-var l = layout.NewLayout("templates", "layout.html")
+var Layout = core.Layout.NewLayout().SetFilenames("blog/base.html")
 
 func AboutHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	buf, err := l.Render(nil, "about.html")
+	buf, err := Layout.Render(nil, "about.html")
 	httputils.ServeBuffer(c, w, buf, err)
 }
 
@@ -35,7 +37,7 @@ func ArticleHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	buf, err := l.Render(layout.Context{"article": article}, "blog/article.html")
+	buf, err := Layout.Render(tmplt.Context{"article": article}, "blog/article.html")
 	httputils.ServeBuffer(c, w, buf, err)
 }
 
@@ -48,7 +50,7 @@ func ArticleListHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.HandleError(c, w, err)
 		return
 	}
-	buf, err := l.Render(layout.Context{"articles": articles}, "blog/article_list.html")
+	buf, err := Layout.Render(tmplt.Context{"articles": articles}, "blog/article_list.html")
 	httputils.ServeBuffer(c, w, buf, err)
 }
 
@@ -82,6 +84,6 @@ func ArticleCreateHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirect_to.Path, 302)
 	}
 
-	buf, err := l.Render(nil, "blog/article_create.html")
+	buf, err := Layout.Render(nil, "blog/article_create.html")
 	httputils.ServeBuffer(c, w, buf, err)
 }

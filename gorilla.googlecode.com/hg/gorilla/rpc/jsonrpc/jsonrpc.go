@@ -40,11 +40,11 @@ type methodType struct {
 
 type service struct {
 	// name of service
-	name   string
+	name string
 	// receiver of methods for the service
-	rcvr   reflect.Value
+	rcvr reflect.Value
 	// type of the receiver
-	typ    reflect.Type
+	typ reflect.Type
 	// registered methods
 	method map[string]*methodType
 }
@@ -174,7 +174,7 @@ useName bool) os.Error {
 			continue
 		}
 		s.method[mname] = &methodType{method: method, ArgType: argType,
-		ReplyType: replyType}
+			ReplyType: replyType}
 	}
 
 	if len(s.method) == 0 {
@@ -209,28 +209,29 @@ func isExportedOrBuiltinType(t reflect.Type) bool {
 // A value sent as a placeholder for the response when the server receives
 // an invalid request.
 type InvalidRequest struct{}
+
 var invalidRequest = InvalidRequest{}
 var null = json.RawMessage([]byte("null"))
 
 type JsonRequest struct {
 	// A String containing the name of the method to be invoked.
-	Method string           `json:"method"`
+	Method string `json:"method"`
 	// An Array of objects to pass as arguments to the method.
 	Params *json.RawMessage `json:"params"`
 	// The request id. This can be of any type. It is used to match the
 	// response with the request that it is replying to.
-	Id     *json.RawMessage `json:"id"`
+	Id *json.RawMessage `json:"id"`
 }
 
 type JsonResponse struct {
 	// The Object that was returned by the invoked method. This must be null
 	// in case there was an error invoking the method.
-	Result interface{}      `json:"result"`
+	Result interface{} `json:"result"`
 	// An Error object if there was an error invoking the method. It must be
 	// null if there was no error.
-	Error  interface{}      `json:"error"`
+	Error interface{} `json:"error"`
 	// This must be the same id as the request it is responding to.
-	Id     *json.RawMessage `json:"id"`
+	Id *json.RawMessage `json:"id"`
 }
 
 // Server represents an RPC Server.
@@ -276,7 +277,7 @@ func requestError(w http.ResponseWriter, status int, message string,
 args ...interface{}) {
 	w.WriteHeader(status)
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	fmt.Fprintf(w, message + "\n", args...)
+	fmt.Fprintf(w, message+"\n", args...)
 }
 
 // ServeHTTP implements an http.Handler that answers RPC requests.
@@ -339,7 +340,7 @@ func (server *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	replyv := reflect.New(mtype.ReplyType.Elem())
 	result := mtype.method.Func.Call([]reflect.Value{service.rcvr,
-									 reflect.ValueOf(r), argv, replyv})
+		reflect.ValueOf(r), argv, replyv})
 
 	// 5. Encode and set response.
 	response := new(JsonResponse)
