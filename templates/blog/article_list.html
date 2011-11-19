@@ -4,7 +4,7 @@
 <h1>{{template "title"}}</h1>
 
 {{range .articles}}
-  <h2><a href="{{.URL.String}}">{{.Title}}</a></h2>
-  <p>{{.Text}}</p>
+  <h2><a href="{{.URL.String}}">{{.Title|html}}</a></h2>
+  <p>{{.Text|html}}</p>
 {{end}}
 {{end}}
