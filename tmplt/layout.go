@@ -83,6 +83,11 @@ func (l *layout) TemplateSet(filename string) (*template.Set, os.Error) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 
+	// cache may be already filled by another goroutine
+	if s, ok := l.templateSetCache[filename]; ok {
+		return s, nil
+	}
+
 	s, err := l.NewTemplateSet()
 	if err != nil {
 		return nil, err
