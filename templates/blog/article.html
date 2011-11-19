@@ -1,6 +1,6 @@
 {{define "title"}}{{.article.Title}}{{end}}
 
 {{define "content"}}
-<h1>{{.article.Title}}</h1>
-<p>{{.article.Text}}</p>
+<h1>{{.article.Title|html}}</h1>
+<p>{{.article.Text|html}}</p>
 {{end}}
