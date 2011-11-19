@@ -6,6 +6,7 @@ import (
 	"template"
 	"runtime/debug"
 	"http"
+	"url"
 
 	"appengine"
 	"appengine/user"
@@ -17,6 +18,10 @@ import (
 )
 
 var Router = &mux.Router{}
+
+func URLFor(name string, pairs ...string) *url.URL {
+	return Router.NamedRoutes[name].URL(pairs...)
+}
 
 func TemplateFuncRecover() {
 	if err := recover(); err != nil {

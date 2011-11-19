@@ -80,8 +80,8 @@ func ArticleCreateHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		redirect_to := core.Router.NamedRoutes["article"].
-			URL("id", strconv.Itoa64(a.Key().IntID()))
+		redirect_to := core.URLFor(
+			"article", "id", strconv.Itoa64(a.Key().IntID()))
 		http.Redirect(w, r, redirect_to.Path, 302)
 	}
 

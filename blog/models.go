@@ -61,7 +61,7 @@ func (a *Article) SetKey(key *datastore.Key) os.Error {
 }
 
 func (a *Article) URL() *url.URL {
-	return core.Router.NamedRoutes["article"].URL("id", strconv.Itoa64(a.Key().IntID()))
+	return core.URLFor("article", "id", strconv.Itoa64(a.Key().IntID()))
 }
 
 func NewArticle(c appengine.Context, title string, text string) (*Article, os.Error) {
