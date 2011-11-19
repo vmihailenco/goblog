@@ -4,6 +4,7 @@ import (
 	"os"
 	"bytes"
 	"template"
+	"sync"
 )
 
 type Context map[string]interface{}
@@ -14,25 +15,25 @@ type layout struct {
 	filenames        []string
 	funcMap          template.FuncMap
 	templateSetCache map[string]*template.Set
+	mutex            sync.RWMutex
 }
 
 func NewLayout(basePath string, layoutPath string) *layout {
 	return &layout{
-		basePath,
-		layoutPath,
-		nil,
-		make(template.FuncMap),
-		make(map[string]*template.Set),
+		basePath:         basePath,
+		layoutPath:       layoutPath,
+		funcMap:          make(template.FuncMap),
+		templateSetCache: make(map[string]*template.Set),
 	}
 }
 
 func (l *layout) NewLayout() *layout {
 	return &layout{
-		l.basePath,
-		l.layoutPath,
-		l.filenames,
-		l.funcMap,
-		make(map[string]*template.Set),
+		basePath:         l.basePath,
+		layoutPath:       l.layoutPath,
+		filenames:        l.filenames,
+		funcMap:          l.funcMap,
+		templateSetCache: make(map[string]*template.Set),
 	}
 }
 
@@ -64,10 +65,23 @@ func (l *layout) NewTemplateSet() (*template.Set, os.Error) {
 	return s, nil
 }
 
-func (l *layout) TemplateSet(filename string) (*template.Set, os.Error) {
+func (l *layout) templateSetFromCache(filename string) *template.Set {
+	l.mutex.RLock()
+	defer l.mutex.RUnlock()
 	if s, ok := l.templateSetCache[filename]; ok {
+		return s
+	}
+	return nil
+}
+
+func (l *layout) TemplateSet(filename string) (*template.Set, os.Error) {
+	s := l.templateSetFromCache(filename)
+	if s != nil {
 		return s, nil
 	}
+
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
 
 	s, err := l.NewTemplateSet()
 	if err != nil {
