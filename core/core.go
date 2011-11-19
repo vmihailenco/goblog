@@ -72,7 +72,12 @@ var Layout = tmplt.NewLayout("templates", "layout.html").
 	"loginUrl":  loginUrl,
 	"logoutUrl": logoutUrl})
 
-func RenderTemplate(c appengine.Context, w http.ResponseWriter, context tmplt.Context, filename string) {
+func RenderTemplate(
+	c appengine.Context,
+	w http.ResponseWriter,
+	l *tmplt.Layout,
+	context tmplt.Context,
+	filename string) {
 	if context == nil {
 		context = tmplt.Context{}
 	}
@@ -85,6 +90,6 @@ func RenderTemplate(c appengine.Context, w http.ResponseWriter, context tmplt.Co
 	}
 	context["user"] = u
 
-	buf, err := Layout.Render(context, filename)
+	buf, err := l.Render(context, filename)
 	httputils.ServeBuffer(c, w, buf, err)
 }

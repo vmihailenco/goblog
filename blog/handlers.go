@@ -17,7 +17,7 @@ var Layout = core.Layout.NewLayout().SetFilenames("blog/base.html")
 
 func AboutHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	core.RenderTemplate(c, w, nil, "about.html")
+	core.RenderTemplate(c, w, Layout, nil, "about.html")
 }
 
 func ArticleHandler(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +37,7 @@ func ArticleHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	context := tmplt.Context{"article": article}
-	core.RenderTemplate(c, w, context, "blog/article.html")
+	core.RenderTemplate(c, w, Layout, context, "blog/article.html")
 }
 
 func ArticleListHandler(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +51,7 @@ func ArticleListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	context := tmplt.Context{"articles": articles}
-	core.RenderTemplate(c, w, context, "blog/article_list.html")
+	core.RenderTemplate(c, w, Layout, context, "blog/article_list.html")
 }
 
 type ArticleForm struct {
@@ -85,5 +85,5 @@ func ArticleCreateHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirect_to.Path, 302)
 	}
 
-	core.RenderTemplate(c, w, nil, "blog/article_create.html")
+	core.RenderTemplate(c, w, Layout, nil, "blog/article_create.html")
 }

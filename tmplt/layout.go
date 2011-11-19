@@ -9,35 +9,35 @@ import (
 
 type Context map[string]interface{}
 
-type layout struct {
+type Layout struct {
 	basePath         string
-	layoutPath       string
+	LayoutPath       string
 	filenames        []string
 	funcMap          template.FuncMap
 	templateSetCache map[string]*template.Set
 	mutex            sync.RWMutex
 }
 
-func NewLayout(basePath string, layoutPath string) *layout {
-	return &layout{
+func NewLayout(basePath string, LayoutPath string) *Layout {
+	return &Layout{
 		basePath:         basePath,
-		layoutPath:       layoutPath,
+		LayoutPath:       LayoutPath,
 		funcMap:          make(template.FuncMap),
 		templateSetCache: make(map[string]*template.Set),
 	}
 }
 
-func (l *layout) NewLayout() *layout {
-	return &layout{
+func (l *Layout) NewLayout() *Layout {
+	return &Layout{
 		basePath:         l.basePath,
-		layoutPath:       l.layoutPath,
+		LayoutPath:       l.LayoutPath,
 		filenames:        l.filenames,
 		funcMap:          l.funcMap,
 		templateSetCache: make(map[string]*template.Set),
 	}
 }
 
-func (l *layout) SetFilenames(filenames ...string) *layout {
+func (l *Layout) SetFilenames(filenames ...string) *Layout {
 	for i, f := range filenames {
 		filenames[i] = l.templatePath(f)
 	}
@@ -45,16 +45,16 @@ func (l *layout) SetFilenames(filenames ...string) *layout {
 	return l
 }
 
-func (l *layout) SetFuncMap(funcMap template.FuncMap) *layout {
+func (l *Layout) SetFuncMap(funcMap template.FuncMap) *Layout {
 	l.funcMap = funcMap
 	return l
 }
 
-func (l *layout) NewTemplateSet() (*template.Set, os.Error) {
+func (l *Layout) NewTemplateSet() (*template.Set, os.Error) {
 	s := &template.Set{}
 	s.Funcs(l.funcMap)
 
-	if _, err := s.ParseTemplateFiles(l.templatePath(l.layoutPath)); err != nil {
+	if _, err := s.ParseTemplateFiles(l.templatePath(l.LayoutPath)); err != nil {
 		return nil, err
 	}
 
@@ -65,7 +65,7 @@ func (l *layout) NewTemplateSet() (*template.Set, os.Error) {
 	return s, nil
 }
 
-func (l *layout) templateSetFromCache(filename string) *template.Set {
+func (l *Layout) templateSetFromCache(filename string) *template.Set {
 	l.mutex.RLock()
 	defer l.mutex.RUnlock()
 	if s, ok := l.templateSetCache[filename]; ok {
@@ -74,7 +74,7 @@ func (l *layout) templateSetFromCache(filename string) *template.Set {
 	return nil
 }
 
-func (l *layout) TemplateSet(filename string) (*template.Set, os.Error) {
+func (l *Layout) TemplateSet(filename string) (*template.Set, os.Error) {
 	s := l.templateSetFromCache(filename)
 	if s != nil {
 		return s, nil
@@ -103,20 +103,20 @@ func (l *layout) TemplateSet(filename string) (*template.Set, os.Error) {
 	return s, nil
 }
 
-func (l *layout) Render(context Context, filename string) (*bytes.Buffer, os.Error) {
+func (l *Layout) Render(context Context, filename string) (*bytes.Buffer, os.Error) {
 	s, err := l.TemplateSet(filename)
 	if err != nil {
 		return nil, err
 	}
 
 	buf := &bytes.Buffer{}
-	if err := s.Execute(buf, l.layoutPath, context); err != nil {
+	if err := s.Execute(buf, l.LayoutPath, context); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
-func (l *layout) templatePath(path string) string {
+func (l *Layout) templatePath(path string) string {
 	if path != "" && path[0:1] == "/" {
 		return path
 	}
