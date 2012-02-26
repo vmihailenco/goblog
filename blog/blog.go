@@ -17,6 +17,7 @@ func init() {
 	Router.HandleFunc("/article/list/", ArticleListHandler).Name("articleList")
 	Router.HandleFunc("/articles/{id:[0-9]+}/", ArticleHandler).Name("article")
 	Router.HandleFunc("/about/", AboutHandler).Name("about")
+	Router.HandleFunc("/500.html", InternalErrorHandler).Name("internalError")
 	Router.HandleFunc("/", ArticleListHandler).Name("home")
 
 	http.Handle("/", Router)

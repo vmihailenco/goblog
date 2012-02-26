@@ -1,6 +1,7 @@
 package blog
 
 import (
+	"errors"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -94,10 +95,19 @@ func ArticleCreateHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		redirect_to := core.URLFor(
-			"article", "id", strconv.FormatInt(a.Key().IntID(), 10))
+		redirect_to, err := Router.GetRoute("article").URL(
+			"id", strconv.FormatInt(a.Key().IntID(), 10))
+		if err != nil {
+			httputils.HandleError(c, w, err)
+			return
+		}
 		http.Redirect(w, r, redirect_to.Path, 302)
 	}
 
 	core.RenderTemplate(c, w, Layout, nil, "templates/blog/articleCreate.html")
+}
+
+func InternalErrorHandler(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	httputils.HandleError(c, w, errors.New("empty"))
 }

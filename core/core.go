@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"net/url"
 	"runtime/debug"
 
 	"appengine"
@@ -35,11 +34,6 @@ func init() {
 	}
 }
 
-func URLFor(name string, pairs ...string) *url.URL {
-	url, _ := Router.GetRoute(name).URL(pairs...)
-	return url
-}
-
 func TemplateFuncRecover() {
 	if err := recover(); err != nil {
 		errStr := fmt.Sprint(err)
@@ -61,7 +55,11 @@ func urlFor(name string, pairs ...interface{}) string {
 			strPairs[i] = fmt.Sprint(pairs[i])
 		}
 	}
-	return URLFor(name, strPairs...).String()
+	url, err := Router.GetRoute(name).URL(strPairs...)
+	if err != nil {
+		return err.Error()
+	}
+	return url.String()
 }
 
 func loginUrl(context tmplt.Context, redirectTo string) (string, error) {

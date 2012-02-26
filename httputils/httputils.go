@@ -20,6 +20,8 @@ func init() {
 }
 
 func HandleError(c appengine.Context, w http.ResponseWriter, err error) {
+	w.WriteHeader(http.StatusInternalServerError)
+
 	err2 := Layout.Execute(w, tmplt.Context{"err": err})
 	if err2 != nil {
 		c.Criticalf("Got error %v while serving", err2, err)

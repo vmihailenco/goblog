@@ -8,7 +8,6 @@ import (
 	"appengine"
 	"appengine/datastore"
 
-	"core"
 	"core/entity"
 )
 
@@ -59,8 +58,8 @@ func (a *Article) SetKey(key *datastore.Key) error {
 	return a.Entity.SetKey(key)
 }
 
-func (a *Article) URL() *url.URL {
-	return core.URLFor("article", "id", strconv.FormatInt(a.Key().IntID(), 10))
+func (a *Article) URL() (*url.URL, error) {
+	return Router.GetRoute("article").URL("id", strconv.FormatInt(a.Key().IntID(), 10))
 }
 
 func NewArticle(c appengine.Context, title string, text string) (*Article, error) {
