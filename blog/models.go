@@ -1,10 +1,9 @@
 package blog
 
 import (
-	"os"
-	"time"
+	"net/url"
 	"strconv"
-	"url"
+	"time"
 
 	"appengine"
 	"appengine/datastore"
@@ -21,7 +20,7 @@ func GetArticleQuery() *datastore.Query {
 	return datastore.NewQuery(ARTICLE_KIND)
 }
 
-func GetArticleById(c appengine.Context, id int64) (*Article, os.Error) {
+func GetArticleById(c appengine.Context, id int64) (*Article, error) {
 	key := datastore.NewKey(c, "article", "", id, nil)
 	article := &Article{}
 	if err := datastore.Get(c, key, article); err != nil {
@@ -31,7 +30,7 @@ func GetArticleById(c appengine.Context, id int64) (*Article, os.Error) {
 	return article, nil
 }
 
-func GetArticles(c appengine.Context, q *datastore.Query, limit int) (*[]Article, os.Error) {
+func GetArticles(c appengine.Context, q *datastore.Query, limit int) (*[]Article, error) {
 	q = q.Limit(limit)
 	articles := make([]Article, 0, limit)
 	keys, err := q.GetAll(c, &articles)
@@ -50,10 +49,10 @@ type Article struct {
 	Title string
 	Text  string
 
-	CreatedOn datastore.Time
+	CreatedOn time.Time
 }
 
-func (a *Article) SetKey(key *datastore.Key) os.Error {
+func (a *Article) SetKey(key *datastore.Key) error {
 	if a.Entity == nil {
 		a.Entity = entity.NewEntity(ARTICLE_KIND)
 	}
@@ -61,15 +60,15 @@ func (a *Article) SetKey(key *datastore.Key) os.Error {
 }
 
 func (a *Article) URL() *url.URL {
-	return core.URLFor("article", "id", strconv.Itoa64(a.Key().IntID()))
+	return core.URLFor("article", "id", strconv.FormatInt(a.Key().IntID(), 10))
 }
 
-func NewArticle(c appengine.Context, title string, text string) (*Article, os.Error) {
+func NewArticle(c appengine.Context, title string, text string) (*Article, error) {
 	a := &Article{
 		Entity:    entity.NewEntity(ARTICLE_KIND),
 		Title:     title,
 		Text:      text,
-		CreatedOn: datastore.SecondsToTime(time.Seconds()),
+		CreatedOn: time.Now(),
 	}
 	if _, err := entity.PutEntity(c, a); err != nil {
 		return nil, err

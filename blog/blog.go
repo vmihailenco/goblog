@@ -1,9 +1,11 @@
 package blog
 
 import (
-	"http"
-	appengineSessions "gorilla.googlecode.com/hg/gorilla/appengine/sessions"
-	"gorilla.googlecode.com/hg/gorilla/sessions"
+	"net/http"
+
+	appengineSessions "code.google.com/p/gorilla/appengine/sessions"
+	"code.google.com/p/gorilla/sessions"
+
 	"core"
 )
 

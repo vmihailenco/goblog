@@ -1,7 +1,7 @@
 application: gorilla-blog
 version: 1
 runtime: go
-api_version: 3
+api_version: go1beta
 
 handlers:
 - url: /(robots\.txt|favicon\.ico)

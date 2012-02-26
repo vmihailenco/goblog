@@ -1,26 +1,43 @@
 package core
 
 import (
-	"os"
+	"errors"
 	"fmt"
-	"template"
+	"html/template"
+	"net/http"
+	"net/url"
 	"runtime/debug"
-	"http"
-	"url"
 
 	"appengine"
 	"appengine/user"
-	"gorilla.googlecode.com/hg/gorilla/mux"
+	"code.google.com/p/gorilla/mux"
 
+	"auth"
 	"httputils"
 	"tmplt"
-	"auth"
 )
 
 var Router = &mux.Router{}
 
+var Layout *template.Template
+
+func init() {
+	Layout = template.New("layout.html")
+	Layout = Layout.Funcs(template.FuncMap{
+		"urlFor":    urlFor,
+		"loginUrl":  loginUrl,
+		"logoutUrl": logoutUrl})
+
+	var err error
+	Layout, err = Layout.ParseFiles("templates/layout.html")
+	if err != nil {
+		panic(err)
+	}
+}
+
 func URLFor(name string, pairs ...string) *url.URL {
-	return Router.NamedRoutes[name].URL(pairs...)
+	url, _ := Router.GetRoute(name).URL(pairs...)
+	return url
 }
 
 func TemplateFuncRecover() {
@@ -28,7 +45,7 @@ func TemplateFuncRecover() {
 		errStr := fmt.Sprint(err)
 		fmt.Println(errStr)
 		debug.PrintStack()
-		panic(os.NewError(errStr))
+		panic(errors.New(errStr))
 	}
 }
 
@@ -44,17 +61,16 @@ func urlFor(name string, pairs ...interface{}) string {
 			strPairs[i] = fmt.Sprint(pairs[i])
 		}
 	}
-	route, _ := Router.NamedRoutes[name]
-	return route.URL(strPairs...).String()
+	return URLFor(name, strPairs...).String()
 }
 
-func loginUrl(context tmplt.Context, redirectTo string) (string, os.Error) {
+func loginUrl(context tmplt.Context, redirectTo string) (string, error) {
 	defer TemplateFuncRecover()
 	c := context["appengineContext"].(appengine.Context)
 	return user.LoginURL(c, redirectTo)
 }
 
-func logoutUrl(context tmplt.Context, redirectTo string) (string, os.Error) {
+func logoutUrl(context tmplt.Context, redirectTo string) (string, error) {
 	defer TemplateFuncRecover()
 	c := context["appengineContext"].(appengine.Context)
 	return user.LogoutURL(c, redirectTo)
@@ -66,18 +82,13 @@ func isAdmin(context tmplt.Context) bool {
 	return user.IsAdmin(c)
 }
 
-var Layout = tmplt.NewLayout("templates", "layout.html").
-	SetFuncMap(template.FuncMap{
-	"urlFor":    urlFor,
-	"loginUrl":  loginUrl,
-	"logoutUrl": logoutUrl})
+func RenderTemplate(c appengine.Context, w http.ResponseWriter, base *template.Template, context tmplt.Context, filename string) {
+	t, err := tmplt.Holder.Lookup(filename, base)
+	if err != nil {
+		httputils.HandleError(c, w, err)
+		return
+	}
 
-func RenderTemplate(
-	c appengine.Context,
-	w http.ResponseWriter,
-	l *tmplt.Layout,
-	context tmplt.Context,
-	filename string) {
 	if context == nil {
 		context = tmplt.Context{}
 	}
@@ -90,6 +101,9 @@ func RenderTemplate(
 	}
 	context["user"] = u
 
-	buf, err := l.Render(context, filename)
-	httputils.ServeBuffer(c, w, buf, err)
+	err = t.Execute(w, context)
+	if err != nil {
+		httputils.HandleError(c, w, err)
+		return
+	}
 }

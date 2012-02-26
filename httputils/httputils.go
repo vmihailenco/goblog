@@ -1,29 +1,28 @@
 package httputils
 
 import (
-	"os"
-	"bytes"
-	"http"
+	"html/template"
+	"net/http"
 
 	"appengine"
 
 	"tmplt"
 )
 
-var layout = tmplt.NewLayout("templates", "500.html")
+var Layout *template.Template
 
-func ServeBuffer(c appengine.Context, w http.ResponseWriter, buf *bytes.Buffer, err os.Error) {
+func init() {
+	var err error
+	Layout, err = template.ParseFiles("templates/500.html")
 	if err != nil {
-		HandleError(c, w, err)
-		return
+		panic(err)
 	}
-	buf.WriteTo(w)
 }
 
-func HandleError(c appengine.Context, w http.ResponseWriter, err os.Error) {
-	buf, err := layout.Render(tmplt.Context{"err": err}, "")
-	if err != nil {
-		c.Criticalf("%v", err)
+func HandleError(c appengine.Context, w http.ResponseWriter, err error) {
+	err2 := Layout.Execute(w, tmplt.Context{"err": err})
+	if err2 != nil {
+		c.Criticalf("Got error %v while serving", err2, err)
+		return
 	}
-	ServeBuffer(c, w, buf, nil)
 }

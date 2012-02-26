@@ -1,30 +1,44 @@
 package blog
 
 import (
+	"html/template"
+	"net/http"
 	"strconv"
-	"http"
 
 	"appengine"
-	"gorilla.googlecode.com/hg/gorilla/mux"
-	"gorilla.googlecode.com/hg/gorilla/schema"
+	"code.google.com/p/gorilla/mux"
+	"code.google.com/p/gorilla/schema"
 
 	"core"
-	"tmplt"
 	"httputils"
+	"tmplt"
 )
 
-var Layout = core.Layout.NewLayout().SetFilenames("blog/base.html")
+var Layout *template.Template
+
+func init() {
+	var err error
+	Layout, err = core.Layout.Clone()
+	if err != nil {
+		panic(err)
+	}
+
+	Layout, err = Layout.ParseFiles("templates/blog/base.html")
+	if err != nil {
+		panic(err)
+	}
+}
 
 func AboutHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	core.RenderTemplate(c, w, Layout, nil, "about.html")
+	core.RenderTemplate(c, w, Layout, nil, "templates/about.html")
 }
 
 func ArticleHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
 	vars := mux.Vars(r)
-	id, err := strconv.Atoi64(vars["id"])
+	id, err := strconv.ParseInt(vars["id"], 10, 64)
 	if err != nil {
 		httputils.HandleError(c, w, err)
 		return
@@ -37,7 +51,7 @@ func ArticleHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	context := tmplt.Context{"article": article}
-	core.RenderTemplate(c, w, Layout, context, "blog/article.html")
+	core.RenderTemplate(c, w, Layout, context, "templates/blog/article.html")
 }
 
 func ArticleListHandler(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +65,7 @@ func ArticleListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	context := tmplt.Context{"articles": articles}
-	core.RenderTemplate(c, w, Layout, context, "blog/article_list.html")
+	core.RenderTemplate(c, w, Layout, context, "templates/blog/articleList.html")
 }
 
 type ArticleForm struct {
@@ -69,7 +83,7 @@ func ArticleCreateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		form := &ArticleForm{}
-		if err := schema.Load(form, r.Form); err != nil {
+		if err := schema.NewDecoder().Decode(form, r.Form); err != nil {
 			httputils.HandleError(c, w, err)
 			return
 		}
@@ -81,9 +95,9 @@ func ArticleCreateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		redirect_to := core.URLFor(
-			"article", "id", strconv.Itoa64(a.Key().IntID()))
+			"article", "id", strconv.FormatInt(a.Key().IntID(), 10))
 		http.Redirect(w, r, redirect_to.Path, 302)
 	}
 
-	core.RenderTemplate(c, w, Layout, nil, "blog/article_create.html")
+	core.RenderTemplate(c, w, Layout, nil, "templates/blog/articleCreate.html")
 }

@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"os"
+	"errors"
 
 	"appengine"
 	"appengine/datastore"
@@ -28,7 +28,7 @@ func initUser(user *User) {
 	user.Entity = entity.NewEntity(USER_KIND)
 }
 
-func GetUserByUserId(c appengine.Context, userId string) (*User, os.Error) {
+func GetUserByUserId(c appengine.Context, userId string) (*User, error) {
 	q := GetUserQuery().Filter("UserId =", userId).Limit(2)
 	users := make([]User, 0, 2)
 	keys, err := q.GetAll(c, &users)
@@ -42,12 +42,12 @@ func GetUserByUserId(c appengine.Context, userId string) (*User, os.Error) {
 		initUser(&users[0])
 		return &users[0], nil
 	}
-	return nil, os.NewError("got multiple results for unique field")
+	return nil, errors.New("got multiple results for unique field")
 }
 
-func CreateUserFromAppengine(c appengine.Context, appengineUser *user.User) (*User, os.Error) {
+func CreateUserFromAppengine(c appengine.Context, appengineUser *user.User) (*User, error) {
 	u := &User{
-		UserId: appengineUser.Id,
+		UserId: appengineUser.ID,
 
 		Name:       appengineUser.String(),
 		Email:      appengineUser.Email,
@@ -63,12 +63,12 @@ func CreateUserFromAppengine(c appengine.Context, appengineUser *user.User) (*Us
 	return u, nil
 }
 
-func CurrentUser(c appengine.Context) (*User, os.Error) {
+func CurrentUser(c appengine.Context) (*User, error) {
 	appengineUser := user.Current(c)
 	if appengineUser == nil {
 		return Anonymous, nil
 	}
-	u, err := GetUserByUserId(c, appengineUser.Id)
+	u, err := GetUserByUserId(c, appengineUser.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ type User struct {
 	FederatedProvider string
 }
 
-func (u *User) SetKey(key *datastore.Key) os.Error {
+func (u *User) SetKey(key *datastore.Key) error {
 	if u.Entity == nil {
 		u.Entity = entity.NewEntity(USER_KIND)
 	}
