@@ -1,0 +1,7 @@
+<div class="control-group{{if .f.HasError}} error{{end}}">
+  {{ renderLabel .f }}
+  <div class="controls">
+    {{ .f.Render }}
+    {{ renderError .f }}
+  </div>
+</div>

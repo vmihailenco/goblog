@@ -10,6 +10,7 @@ import (
 	"appengine"
 	"appengine/user"
 	"code.google.com/p/gorilla/mux"
+	"gforms"
 
 	"auth"
 	"httputils"
@@ -25,7 +26,12 @@ func init() {
 	Layout = Layout.Funcs(template.FuncMap{
 		"urlFor":    urlFor,
 		"loginUrl":  loginUrl,
-		"logoutUrl": logoutUrl})
+		"logoutUrl": logoutUrl,
+
+		"render":      gforms.Render,
+		"renderLabel": gforms.RenderLabel,
+		"renderError": gforms.RenderError,
+	})
 
 	var err error
 	Layout, err = Layout.ParseFiles("templates/layout.html")

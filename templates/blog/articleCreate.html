@@ -1,23 +1,12 @@
 {{define "title"}}Create New Article{{end}}
 
 {{define "content"}}
-<form method="post">
-  <div class="clearfix">
-    <label for="Title">Title</label>
-    <div class="input">
-      <input type="text" id="Title" name="Title" />
-    </div>
-  </div>
+<form method="post" class="well">
+  {{ render .form.Title }}
+  {{ render .form.Text }}
 
-  <div class="clearfix">
-    <label for="Text">Text</label>
-    <div class="input">
-      <textarea id="Text" name="Text"></textarea>
-    </div>
-  </div>
-
-  <div class="actions">
-    <button type="submit" class="btn primary">{{template "title" .}}</button>
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">{{template "title" .}}</button>
   </div>
 </form>
 {{end}}

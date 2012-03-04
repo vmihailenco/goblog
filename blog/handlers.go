@@ -8,7 +8,7 @@ import (
 
 	"appengine"
 	"code.google.com/p/gorilla/mux"
-	"code.google.com/p/gorilla/schema"
+	"gforms"
 
 	"core"
 	"httputils"
@@ -69,13 +69,10 @@ func ArticleListHandler(w http.ResponseWriter, r *http.Request) {
 	core.RenderTemplate(c, w, Layout, context, "templates/blog/articleList.html")
 }
 
-type ArticleForm struct {
-	Title string
-	Text  string
-}
-
 func ArticleCreateHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
+
+	form := NewArticleForm()
 
 	if r.Method == "POST" {
 		if err := r.ParseForm(); err != nil {
@@ -83,28 +80,28 @@ func ArticleCreateHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		form := &ArticleForm{}
-		if err := schema.NewDecoder().Decode(form, r.Form); err != nil {
-			httputils.HandleError(c, w, err)
-			return
-		}
+		if gforms.IsFormValid(form, r.Form) {
+			a, err := NewArticle(c, form.Title.Value(), form.Text.Value())
+			if err != nil {
+				httputils.HandleError(c, w, err)
+				return
+			}
 
-		a, err := NewArticle(c, form.Title, form.Text)
-		if err != nil {
-			httputils.HandleError(c, w, err)
-			return
+			redirect_to, err := Router.GetRoute("article").URL(
+				"id", strconv.FormatInt(a.Key().IntID(), 10))
+			if err != nil {
+				httputils.HandleError(c, w, err)
+				return
+			}
+			http.Redirect(w, r, redirect_to.Path, 302)
 		}
-
-		redirect_to, err := Router.GetRoute("article").URL(
-			"id", strconv.FormatInt(a.Key().IntID(), 10))
-		if err != nil {
-			httputils.HandleError(c, w, err)
-			return
-		}
-		http.Redirect(w, r, redirect_to.Path, 302)
 	}
 
-	core.RenderTemplate(c, w, Layout, nil, "templates/blog/articleCreate.html")
+	context := map[string]interface{}{
+		"form": form,
+	}
+
+	core.RenderTemplate(c, w, Layout, context, "templates/blog/articleCreate.html")
 }
 
 func InternalErrorHandler(w http.ResponseWriter, r *http.Request) {
