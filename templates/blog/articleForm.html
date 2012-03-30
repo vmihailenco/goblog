@@ -1,6 +1,6 @@
-{{define "content"}}
-<h1>{{template "title"}}</h1>
+{{define "contentTitle"}}{{template "title"}}{{end}}
 
+{{define "content"}}
 <form method="post" class="well article">
   {{render .form.Title "class" "span6"}}
   {{render .form.Text "class" "span6" "rows" "20"}}

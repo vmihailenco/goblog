@@ -1,8 +1,8 @@
 {{define "title"}}Articles{{end}}
 
-{{define "content"}}
-<h1>{{template "title"}}</h1>
+{{define "contentTitle"}}{{template "title"}}{{end}}
 
+{{define "content"}}
 {{range .articles}}
   <h2>
     <a href="{{.URL.String}}">{{.Title}}</a>

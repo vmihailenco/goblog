@@ -1,11 +1,11 @@
 {{define "title"}}{{.article.Title}}{{end}}
 
-{{define "content"}}
-<h1>
+{{define "contentTitle"}}
   {{.article.Title}}
   {{if not .article.IsPublic}} <small>private</small>{{end}}
   <small><a href="{{.article.UpdateURL.String}}">edit</a></small>
-</h1>
+{{end}}
 
+{{define "content"}}
 {{htmlSafe .article.HTML}}
 {{end}}

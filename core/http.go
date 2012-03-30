@@ -30,7 +30,7 @@ func HandleError(c appengine.Context, w http.ResponseWriter, err error) {
 
 	err2 := ErrLayout.Execute(w, tmplt.Context{"err": err})
 	if err2 != nil {
-		c.Criticalf("Got error %v while serving %v", err2, err)
+		c.Criticalf("error %v while serving %v.", err2, err)
 		return
 	}
 }
