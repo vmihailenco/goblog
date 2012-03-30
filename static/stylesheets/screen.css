@@ -3507,3 +3507,24 @@ a.thumbnail:hover {
 .content:after {
   clear: both;
 }
+.footer {
+  width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+  *zoom: 1;
+  margin-top: 45px;
+  padding: 35px 0 36px;
+  border-top: 1px solid #eeeeee;
+}
+.footer:before, .footer:after {
+  display: table;
+  content: "";
+}
+.footer:after {
+  clear: both;
+}
+form.article textarea[name=Text] {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 100%;
+  color: #000000;
+}

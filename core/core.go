@@ -10,10 +10,9 @@ import (
 	"appengine"
 	"appengine/user"
 	"code.google.com/p/gorilla/mux"
-	"gforms"
+	"github.com/vmihailenco/gforms"
 
 	"auth"
-	"httputils"
 	"tmplt"
 )
 
@@ -24,6 +23,8 @@ var Layout *template.Template
 func init() {
 	Layout = template.New("layout.html")
 	Layout = Layout.Funcs(template.FuncMap{
+		"htmlSafe": htmlSafe,
+
 		"urlFor":    urlFor,
 		"loginUrl":  loginUrl,
 		"logoutUrl": logoutUrl,
@@ -38,6 +39,9 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
+	Router.HandleFunc("/500.html", InternalErrorHandler).Name("internalError")
+	Router.HandleFunc("/profile/", TemplateHandler(Layout, "templates/profile.html")).Name("profile")
 }
 
 func TemplateFuncRecover() {
@@ -47,6 +51,10 @@ func TemplateFuncRecover() {
 		debug.PrintStack()
 		panic(errors.New(errStr))
 	}
+}
+
+func htmlSafe(text string) template.HTML {
+	return template.HTML(text)
 }
 
 func urlFor(name string, pairs ...interface{}) string {
@@ -86,28 +94,27 @@ func isAdmin(context tmplt.Context) bool {
 	return user.IsAdmin(c)
 }
 
-func RenderTemplate(c appengine.Context, w http.ResponseWriter, base *template.Template, context tmplt.Context, filename string) {
-	t, err := tmplt.Holder.Lookup(filename, base)
-	if err != nil {
-		httputils.HandleError(c, w, err)
-		return
+func RenderTemplate(c appengine.Context, w http.ResponseWriter, base *template.Template, context tmplt.Context, templateName ...string) {
+	t := base
+	var err error
+	for _, name := range templateName {
+		t, err = tmplt.Holder.Get(name, t)
+		if err != nil {
+			HandleError(c, w, err)
+			return
+		}
 	}
 
 	if context == nil {
 		context = tmplt.Context{}
 	}
-	context["appengineContext"] = c
 
-	u, err := auth.CurrentUser(c)
-	if err != nil {
-		httputils.HandleError(c, w, err)
-		return
-	}
-	context["user"] = u
+	context["appengineContext"] = c
+	context["user"] = auth.CurrentUser(c)
 
 	err = t.Execute(w, context)
 	if err != nil {
-		httputils.HandleError(c, w, err)
+		HandleError(c, w, err)
 		return
 	}
 }

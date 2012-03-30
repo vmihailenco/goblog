@@ -1,0 +1,8 @@
+<div class="control-group{{if .field.HasValidationError}} error{{end}}">
+  <div class="controls">
+    <label class="checkbox">
+      {{renderField .field .attrs}} {{.field.Label}}
+    </label>
+    {{renderError .field}}
+  </div>
+</div>

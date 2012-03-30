@@ -1,15 +1,14 @@
 package entity
 
 import (
-	"errors"
-
 	"appengine"
 	"appengine/datastore"
 )
 
 type Putable interface {
 	Kind() string
-	SetKey(*datastore.Key) error
+	SetKey(*datastore.Key)
+	Key() *datastore.Key
 }
 
 type Entity struct {
@@ -21,12 +20,11 @@ func NewEntity(kind string) *Entity {
 	return &Entity{kind: kind}
 }
 
-func (e *Entity) SetKey(key *datastore.Key) error {
+func (e *Entity) SetKey(key *datastore.Key) {
 	if e.key != nil {
-		return errors.New("entity already has a key")
+		panic("Entity already has a key.")
 	}
 	e.key = key
-	return nil
 }
 
 func (e *Entity) Key() *datastore.Key {
@@ -37,13 +35,20 @@ func (e *Entity) Kind() string {
 	return e.kind
 }
 
-func PutEntity(c appengine.Context, e Putable) (interface{}, error) {
-	key, err := datastore.Put(c, datastore.NewIncompleteKey(c, e.Kind(), nil), e)
+func Put(c appengine.Context, entity Putable) error {
+	key := entity.Key()
+	if key == nil {
+		key = datastore.NewIncompleteKey(c, entity.Kind(), nil)
+	}
+
+	key, err := datastore.Put(c, key, entity)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if err = e.SetKey(key); err != nil {
-		return nil, err
+
+	if entity.Key() == nil {
+		entity.SetKey(key)
 	}
-	return e, nil
+
+	return nil
 }

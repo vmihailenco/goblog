@@ -2,11 +2,14 @@ package blog
 
 import (
 	"net/url"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"appengine"
 	"appengine/datastore"
+	"github.com/russross/blackfriday"
 
 	"core/entity"
 )
@@ -45,32 +48,64 @@ func GetArticles(c appengine.Context, q *datastore.Query, limit int) (*[]Article
 type Article struct {
 	*entity.Entity `datastore:"-"`
 
-	Title string
-	Text  string
+	Title     string
+	TextBytes []byte
+	HTMLBytes []byte
 
+	IsPublic  bool
 	CreatedOn time.Time
 }
 
-func (a *Article) SetKey(key *datastore.Key) error {
+func (a *Article) Text() string {
+	return string(a.TextBytes)
+}
+
+func (a *Article) HTML() string {
+	return string(a.HTMLBytes)
+}
+
+func (a *Article) SetKey(key *datastore.Key) {
 	if a.Entity == nil {
 		a.Entity = entity.NewEntity(ARTICLE_KIND)
 	}
-	return a.Entity.SetKey(key)
+	a.Entity.SetKey(key)
+}
+
+var slugRe = regexp.MustCompile("[^0-9A-Za-z_-]+")
+
+func (a *Article) Slug() string {
+	return strings.ToLower(slugRe.ReplaceAllLiteralString(a.Title, "-"))
 }
 
 func (a *Article) URL() (*url.URL, error) {
-	return Router.GetRoute("article").URL("id", strconv.FormatInt(a.Key().IntID(), 10))
+	return Router.GetRoute("article").URL("id", strconv.FormatInt(a.Key().IntID(), 10), "slug", a.Slug())
 }
 
-func NewArticle(c appengine.Context, title string, text string) (*Article, error) {
+func (a *Article) UpdateURL() (*url.URL, error) {
+	return Router.GetRoute("articleUpdate").URL("id", strconv.FormatInt(a.Key().IntID(), 10))
+}
+
+func CreateArticle(c appengine.Context, title string, text string, isPublic bool) (*Article, error) {
 	a := &Article{
 		Entity:    entity.NewEntity(ARTICLE_KIND),
-		Title:     title,
-		Text:      text,
 		CreatedOn: time.Now(),
 	}
-	if _, err := entity.PutEntity(c, a); err != nil {
+	if err := UpdateArticle(c, a, title, text, isPublic); err != nil {
 		return nil, err
 	}
 	return a, nil
+}
+
+func UpdateArticle(c appengine.Context, a *Article, title string, text string, isPublic bool) error {
+	textBytes := []byte(text)
+
+	a.Title = title
+	a.TextBytes = textBytes
+	a.HTMLBytes = blackfriday.MarkdownCommon(textBytes)
+	a.IsPublic = isPublic
+
+	if err := entity.Put(c, a); err != nil {
+		return err
+	}
+	return nil
 }

@@ -18,7 +18,7 @@ func NewTmpltHolder() *TmpltHolder {
 
 var Holder = NewTmpltHolder()
 
-func (h *TmpltHolder) Lookup(filename string, base *template.Template) (*template.Template, error) {
+func (h *TmpltHolder) Get(filename string, base *template.Template) (*template.Template, error) {
 	if t, ok := h.templateCache[filename]; ok {
 		return t, nil
 	}
@@ -39,6 +39,8 @@ func (h *TmpltHolder) Lookup(filename string, base *template.Template) (*templat
 	if err != nil {
 		return nil, err
 	}
+
+	h.templateCache[filename] = t
 
 	return t, nil
 }

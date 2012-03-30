@@ -1,0 +1,7 @@
+<div class="control-group{{if .field.HasValidationError}} error{{end}}">
+  {{renderLabel .field}}
+  <div class="controls">
+    {{renderField .field .attrs}}
+    {{renderError .field}}
+  </div>
+</div>

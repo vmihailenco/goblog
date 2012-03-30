@@ -1,0 +1,29 @@
+{{define "content"}}
+<h1>{{template "title"}}</h1>
+
+<form method="post" class="well article">
+  {{render .form.Title "class" "span6"}}
+  {{render .form.Text "class" "span6" "rows" "20"}}
+  {{render .form.IsPublic}}
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">{{template "title" .}}</button>
+  </div>
+</form>
+
+<div class="well">
+  <h1 id="titleHTML"></h1>
+  <div id="textHTML"></div>
+</div>
+{{end}}
+
+{{define "js_extra"}}
+<script type="text/javascript" src="/static/js/markdown-preview.js"></script>
+<script type="text/javascript">
+  var settings = {
+    MARKDOWN_PREVIEW_URL: "{{urlFor "markdownPreview"}}",
+  }
+  preview($('#Title'), $('#titleHTML'));
+  previewMarkdown($('#Text'), $('#textHTML'));
+</script>
+{{end}}

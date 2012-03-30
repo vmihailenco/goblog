@@ -1,0 +1,8 @@
+<div class="control-group{{if .field.HasValidationError}} error{{end}}">
+  <div class="controls">
+    {{range $radio := .radios}}
+      <label class="radio">{{$radio}}</label>
+    {{end}}
+    {{renderError .field}}
+  </div>
+</div>
