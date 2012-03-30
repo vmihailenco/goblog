@@ -40,7 +40,7 @@ func init() {
 		panic(err)
 	}
 
-	Router.NotFoundHandler = NotFoundHandler()
+	Router.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 	Router.HandleFunc("/500.html", InternalErrorHandler).Name("internalError")
 	Router.HandleFunc("/profile/", TemplateHandler(Layout, "templates/profile.html")).Name("profile")
 
