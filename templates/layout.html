@@ -12,9 +12,10 @@
 
 <body>
 
-<header class="navbar">
+<header class="navbar navbar-fixed-top">
   <div class="navbar-inner">
     <div class="container">
+      <div class="nav-collapse">
       <ul class="nav">
         <li><a href="{{urlFor "home"}}">Home</a></li>
         {{if .user.IsAuth}}
@@ -35,17 +36,22 @@
           <li><a href="{{loginUrl . "/"}}">Log in</a></li>
         {{end}}
       </ul>
+      </div>
     </div>
   </div>
 </header>
 
 <section class="content">
-  <div class="page-header"><h1>{{template "contentTitle" .}}</h1></div>
-  {{template "content" .}}
+  <div class="container">
+    <div class="page-header"><h1>{{template "contentTitle" .}}</h1></div>
+    {{template "content" .}}
+  </div>
 </section>
 
 <footer class="footer">
-  <p>Copyright 2012 <a href="/profile/">Vladimir Mihailenco</a>. Source code is available at <a href="https://github.com/vmihailenco/goblog">GitHub</a>.</p>
+  <div class="container">
+    <p>Copyright 2012 <a href="/profile/">Vladimir Mihailenco</a>. Source code is available at <a href="https://github.com/vmihailenco/goblog">GitHub</a>.</p>
+  </div>
 </footer>
 
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
