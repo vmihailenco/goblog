@@ -44,7 +44,7 @@ func init() {
 	Router.HandleFunc("/500.html", InternalErrorHandler).Name("internalError")
 	Router.HandleFunc("/profile/", TemplateHandler(Layout, "templates/profile.html")).Name("profile")
 
-	http.Handle("/", Router)
+	http.Handle("/", NewProfilingHandler(Router))
 }
 
 func TemplateFuncRecover() {
@@ -114,6 +114,8 @@ func RenderTemplate(c appengine.Context, w http.ResponseWriter, base *template.T
 
 	context["appengineContext"] = c
 	context["user"] = auth.CurrentUser(c)
+
+	w.Header().Add("content-type", "text/html")
 
 	err = t.Execute(w, context)
 	if err != nil {
