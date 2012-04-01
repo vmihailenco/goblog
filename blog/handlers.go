@@ -46,7 +46,7 @@ func ArticleListHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	user := auth.CurrentUser(c)
 
-	q := GetArticleQuery().Order("-CreatedOn")
+	q := NewArticleQuery().Order("-CreatedOn")
 	if !user.IsAdmin {
 		q = q.Filter("IsPublic=", true)
 	}

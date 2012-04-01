@@ -12,8 +12,9 @@ type Putable interface {
 }
 
 type Entity struct {
-	key  *datastore.Key
-	kind string
+	// key is public to simplify gob encoding
+	DsKey *datastore.Key
+	kind  string
 }
 
 func NewEntity(kind string) *Entity {
@@ -21,17 +22,20 @@ func NewEntity(kind string) *Entity {
 }
 
 func (e *Entity) SetKey(key *datastore.Key) {
-	if e.key != nil {
+	if e.DsKey != nil {
 		panic("Entity already has a key.")
 	}
-	e.key = key
+	e.DsKey = key
 }
 
 func (e *Entity) Key() *datastore.Key {
-	return e.key
+	return e.DsKey
 }
 
 func (e *Entity) Kind() string {
+	if e.DsKey != nil {
+		return e.DsKey.Kind()
+	}
 	return e.kind
 }
 
