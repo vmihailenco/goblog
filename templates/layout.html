@@ -5,9 +5,9 @@
   <title>{{template "title" .}} - Vladimir Mihailenco</title>
   <link rel="stylesheet" type="text/css" href="/static/highlight/styles/default.css" />
   <link rel="stylesheet" type="text/css" href="/static/stylesheets/screen.css" />
-  <!--[if lt IE 9]>
+  {{htmlSafe `<!--[if lt IE 9]>`}}
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-  <![endif]-->
+  {{htmlSafe `<![endif]-->`}}
 </head>
 
 <body>
