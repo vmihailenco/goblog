@@ -122,7 +122,12 @@ func (a *Article) Slug() string {
 }
 
 func (a *Article) URL() (*url.URL, error) {
-	return Router.GetRoute("article").URL("id", strconv.FormatInt(a.Key().IntID(), 10), "slug", a.Slug())
+	return Router.GetRoute("article").URL("id", strconv.FormatInt(a.Key().IntID(), 10),
+		"slug", a.Slug())
+}
+
+func (a *Article) PermaURL() (*url.URL, error) {
+	return Router.GetRoute("articlePermaLink").URL("id", strconv.FormatInt(a.Key().IntID(), 10))
 }
 
 func (a *Article) UpdateURL() (*url.URL, error) {

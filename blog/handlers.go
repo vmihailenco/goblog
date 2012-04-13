@@ -3,6 +3,7 @@ package blog
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"appengine"
 	"code.google.com/p/gorilla/mux"
@@ -39,7 +40,39 @@ func ArticleHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	context := tmplt.Context{"article": article}
-	core.RenderTemplate(c, w, Layout, context, "templates/blog/article.html")
+	core.RenderTemplate(c, w, context, LAYOUT, "templates/blog/article.html")
+}
+
+func ArticlePermaLinkHandler(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	vars := mux.Vars(r)
+	id, err := strconv.ParseInt(vars["id"], 10, 64)
+	if err != nil {
+		core.HandleError(c, w, err)
+		return
+	}
+
+	article, err := GetArticleById(c, id)
+	if err != nil {
+		core.HandleNotFound(c, w)
+		return
+	}
+
+	if !article.IsPublic {
+		user := auth.CurrentUser(c)
+		if !user.IsAdmin {
+			core.HandleAuthRequired(c, w)
+			return
+		}
+	}
+
+	redirectTo, err := article.URL()
+	if err != nil {
+		core.HandleNotFound(c, w)
+		return
+	}
+	http.Redirect(w, r, redirectTo.Path, 302)
 }
 
 func ArticleListHandler(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +91,31 @@ func ArticleListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	context := tmplt.Context{"articles": articles}
-	core.RenderTemplate(c, w, Layout, context, "templates/blog/articleList.html")
+	core.RenderTemplate(c, w, context, LAYOUT, "templates/blog/articleList.html")
+}
+
+func ArticleFeedHandler(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	w.Header().Add("content-type", "application/xml")
+
+	q := NewArticleQuery().Filter("IsPublic=", true).Order("-CreatedOn")
+
+	articles, err := GetArticles(c, q, 20)
+	if err != nil {
+		core.HandleError(c, w, err)
+		return
+	}
+
+	var updatedOn time.Time
+	if articlesArr := *articles; len(articlesArr) > 0 {
+		updatedOn = articlesArr[0].CreatedOn
+	}
+
+	context := tmplt.Context{
+		"articles":  articles,
+		"updatedOn": updatedOn,
+	}
+	core.RenderTemplate(c, w, context, "templates/blog/articleFeed.xml")
 }
 
 func ArticleCreateHandler(w http.ResponseWriter, r *http.Request) {
@@ -100,7 +157,7 @@ func ArticleCreateHandler(w http.ResponseWriter, r *http.Request) {
 	context := map[string]interface{}{
 		"form": form,
 	}
-	core.RenderTemplate(c, w, Layout, context, "templates/blog/articleForm.html", "templates/blog/articleCreate.html")
+	core.RenderTemplate(c, w, context, LAYOUT, "templates/blog/articleForm.html", "templates/blog/articleCreate.html")
 }
 
 func ArticleUpdateHandler(w http.ResponseWriter, r *http.Request) {
@@ -156,7 +213,7 @@ func ArticleUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		"article": article,
 		"form":    form,
 	}
-	core.RenderTemplate(c, w, Layout, context, "templates/blog/articleForm.html", "templates/blog/articleUpdate.html")
+	core.RenderTemplate(c, w, context, LAYOUT, "templates/blog/articleForm.html", "templates/blog/articleUpdate.html")
 }
 
 func MarkdownPreviewHandler(w http.ResponseWriter, r *http.Request) {

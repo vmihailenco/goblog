@@ -1,107 +1,62 @@
 package core
 
 import (
-	"errors"
-	"fmt"
 	"html/template"
 	"net/http"
-	"runtime/debug"
+	"path"
 
 	"appengine"
-	"appengine/user"
 	"code.google.com/p/gorilla/mux"
-	"github.com/vmihailenco/gforms"
 
 	"auth"
 	"tmplt"
 )
 
-var Router = &mux.Router{}
+const (
+	LAYOUT = "templates/layout.html"
+)
 
-var Layout *template.Template
+var (
+	Router = &mux.Router{}
+)
 
 func init() {
-	Layout = template.New("layout.html")
-	Layout = Layout.Funcs(template.FuncMap{
-		"htmlSafe": htmlSafe,
-
-		"urlFor":    urlFor,
-		"loginUrl":  loginUrl,
-		"logoutUrl": logoutUrl,
-
-		"render":      gforms.Render,
-		"renderLabel": gforms.RenderLabel,
-		"renderError": gforms.RenderError,
-	})
-
-	var err error
-	Layout, err = Layout.ParseFiles("templates/layout.html")
-	if err != nil {
-		panic(err)
-	}
-
 	Router.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 	Router.HandleFunc("/500.html", InternalErrorHandler).Name("internalError")
-	Router.HandleFunc("/profile/", TemplateHandler(Layout, "templates/profile.html")).Name("profile")
+	Router.HandleFunc("/profile/", TemplateHandler("templates/layout.html", "templates/profile.html")).Name("profile")
 
 	http.Handle("/", NewProfilingHandler(Router))
 }
 
-func TemplateFuncRecover() {
-	if err := recover(); err != nil {
-		errStr := fmt.Sprint(err)
-		fmt.Println(errStr)
-		debug.PrintStack()
-		panic(errors.New(errStr))
+func RenderTemplate(c appengine.Context, w http.ResponseWriter, context tmplt.Context, templateNames ...string) {
+	var (
+		t   *template.Template
+		err error
+	)
+
+	if len(templateNames) == 0 {
+		panic("expected at least 1 template, but got 0")
 	}
-}
 
-func htmlSafe(text string) template.HTML {
-	return template.HTML(text)
-}
-
-func urlFor(name string, pairs ...interface{}) string {
-	defer TemplateFuncRecover()
-
-	size := len(pairs)
-	strPairs := make([]string, size)
-	for i := 0; i < size; i++ {
-		if v, ok := pairs[i].(string); ok {
-			strPairs[i] = v
-		} else {
-			strPairs[i] = fmt.Sprint(pairs[i])
+	for _, name := range templateNames {
+		newFunc := func(filename string) (*template.Template, error) {
+			var newT *template.Template
+			if t == nil {
+				newT = AddTemplateFuncs(template.New(path.Base(filename)))
+			} else {
+				newT, err = t.Clone()
+				if err != nil {
+					return nil, err
+				}
+			}
+			newT, err = newT.ParseFiles(filename)
+			if err != nil {
+				return nil, err
+			}
+			return newT, nil
 		}
-	}
-	url, err := Router.GetRoute(name).URL(strPairs...)
-	if err != nil {
-		return err.Error()
-	}
-	return url.String()
-}
 
-func loginUrl(context tmplt.Context, redirectTo string) (string, error) {
-	defer TemplateFuncRecover()
-	c := context["appengineContext"].(appengine.Context)
-	return user.LoginURL(c, redirectTo)
-}
-
-func logoutUrl(context tmplt.Context, redirectTo string) (string, error) {
-	defer TemplateFuncRecover()
-	c := context["appengineContext"].(appengine.Context)
-	return user.LogoutURL(c, redirectTo)
-}
-
-func isAdmin(context tmplt.Context) bool {
-	defer TemplateFuncRecover()
-	c := context["appengineContext"].(appengine.Context)
-	return user.IsAdmin(c)
-}
-
-func RenderTemplate(c appengine.Context, w http.ResponseWriter, base *template.Template, context tmplt.Context, templateName ...string) {
-	t := base
-	var err error
-	for _, name := range templateName {
-		t, err = tmplt.Holder.Get(name, t)
+		t, err = tmplt.Holder.Get(name, newFunc)
 		if err != nil {
 			HandleError(c, w, err)
 			return
@@ -115,7 +70,9 @@ func RenderTemplate(c appengine.Context, w http.ResponseWriter, base *template.T
 	context["appengineContext"] = c
 	context["user"] = auth.CurrentUser(c)
 
-	w.Header().Add("content-type", "text/html")
+	if w.Header().Get("content-type") == "" {
+		w.Header().Add("content-type", "text/html")
+	}
 
 	err = t.Execute(w, context)
 	if err != nil {

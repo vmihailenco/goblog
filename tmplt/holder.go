@@ -9,7 +9,7 @@ type Context map[string]interface{}
 
 type TmpltHolder struct {
 	templateCache map[string]*template.Template
-	mutex         sync.RWMutex
+	mutex         sync.Mutex
 }
 
 func NewTmpltHolder() *TmpltHolder {
@@ -18,7 +18,13 @@ func NewTmpltHolder() *TmpltHolder {
 
 var Holder = NewTmpltHolder()
 
-func (h *TmpltHolder) Get(filename string, base *template.Template) (*template.Template, error) {
+func (h *TmpltHolder) Set(filename string, t *template.Template) {
+	h.templateCache[filename] = t
+}
+
+type NewFunc func(string) (*template.Template, error)
+
+func (h *TmpltHolder) Get(filename string, newFunc NewFunc) (*template.Template, error) {
 	if t, ok := h.templateCache[filename]; ok {
 		return t, nil
 	}
@@ -30,12 +36,7 @@ func (h *TmpltHolder) Get(filename string, base *template.Template) (*template.T
 		return t, nil
 	}
 
-	t, err := base.Clone()
-	if err != nil {
-		return nil, err
-	}
-
-	t, err = t.ParseFiles(filename)
+	t, err := newFunc(filename)
 	if err != nil {
 		return nil, err
 	}

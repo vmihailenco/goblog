@@ -1,0 +1,22 @@
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>vladimir-mihailenco.appspot.com</title>
+  <subtitle>Notes on programming - Vladimir Mihailenco</subtitle>
+  <link href="http://vladimir-mihailenco.appspot.com/feed/" rel="self" />
+  <link href="http://vladimir-mihailenco.appspot.com/" />
+  <id>tag:vladimir-mihailenco.appspot.com,{{now | formatTime "2006"}}:vladimir-mihailenco.appspot.com</id>
+  <updated>{{.updatedOn | formatRFC3339}}</updated>
+  <author>
+    <name>Vladimir Mihailenco</name>
+    <email>vladimir.webdev@gmail.com</email>
+  </author>
+  {{range .articles}}
+    <entry>
+      <title>{{.Title}}</title>
+      <link rel="alternate" type="text/html" href="http://vladimir-mihailenco.appspot.com{{.URL}}" />
+      <id>tag:vladimir-mihailenco.appspot.com,{{now | formatTime "2006"}}:vladimir-mihailenco.appspot.com{{.PermaURL}}</id>
+      <updated>{{formatRFC3339 .CreatedOn}}</updated>
+      <summary type="text">{{.Title}}</summary>
+      <content type="html">{{.HTML}}</content>
+    </entry>
+  {{end}}
+</feed>

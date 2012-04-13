@@ -3,17 +3,16 @@ package core
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"net/http"
 	"time"
 
 	"appengine"
 )
 
-func TemplateHandler(layout *template.Template, name string) http.HandlerFunc {
+func TemplateHandler(layout, name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := appengine.NewContext(r)
-		RenderTemplate(c, w, layout, nil, name)
+		RenderTemplate(c, w, nil, layout, name)
 	}
 }
 
@@ -25,7 +24,7 @@ func InternalErrorHandler(w http.ResponseWriter, r *http.Request) {
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	w.WriteHeader(http.StatusNotFound)
-	RenderTemplate(c, w, Layout, nil, "templates/404.html")
+	RenderTemplate(c, w, nil, LAYOUT, "templates/404.html")
 }
 
 type ProfilingHandler struct {

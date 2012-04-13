@@ -5,6 +5,7 @@
   <title>{{template "title" .}} - Vladimir Mihailenco</title>
   <link rel="stylesheet" type="text/css" href="/static/highlight/styles/default.css" />
   <link rel="stylesheet" type="text/css" href="/static/stylesheets/screen.css" />
+  <link rel="alternate" type="application/atom+xml" title="vladimir-mihailenco.appspot.com - Atom" href="http://vladimir-mihailenco.appspot.com/feed/" />
   {{htmlSafe `<!--[if lt IE 9]>`}}
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   {{htmlSafe `<![endif]-->`}}
@@ -50,7 +51,7 @@
 
 <footer class="footer">
   <div class="container">
-    <p>Copyright 2012 <a href="/profile/">Vladimir Mihailenco</a>. Source code is available at <a href="https://github.com/vmihailenco/goblog">GitHub</a>.</p>
+    <p>Copyright {{now | formatTime "2006"}} <a href="/profile/">Vladimir Mihailenco</a>. Source code is available at <a href="https://github.com/vmihailenco/goblog">GitHub</a>.</p>
   </div>
 </footer>
 

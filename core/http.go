@@ -22,7 +22,7 @@ func init() {
 
 func HandleNotFound(c appengine.Context, w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNotFound)
-	RenderTemplate(c, w, Layout, nil, "templates/404.html")
+	RenderTemplate(c, w, nil, LAYOUT, "templates/404.html")
 }
 
 func HandleError(c appengine.Context, w http.ResponseWriter, err error) {
@@ -37,7 +37,7 @@ func HandleError(c appengine.Context, w http.ResponseWriter, err error) {
 
 func HandleAuthRequired(c appengine.Context, w http.ResponseWriter) {
 	w.WriteHeader(http.StatusUnauthorized)
-	RenderTemplate(c, w, Layout, nil, "templates/401.html")
+	RenderTemplate(c, w, nil, LAYOUT, "templates/401.html")
 }
 
 func HandleJSON(c appengine.Context, w http.ResponseWriter, value interface{}) {
