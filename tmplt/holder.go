@@ -18,10 +18,6 @@ func NewTmpltHolder() *TmpltHolder {
 
 var Holder = NewTmpltHolder()
 
-func (h *TmpltHolder) Set(filename string, t *template.Template) {
-	h.templateCache[filename] = t
-}
-
 type NewFunc func(string) (*template.Template, error)
 
 func (h *TmpltHolder) Get(filename string, newFunc NewFunc) (*template.Template, error) {
