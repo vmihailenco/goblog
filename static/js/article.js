@@ -7,6 +7,7 @@
     editor = CodeMirror.fromTextArea(document.getElementById('Text'), {
       mode: 'markdown',
       lineNumbers: true,
+      lineWrapping: true,
       matchBrackets: true,
       theme: 'default',
       onChange: function() {
