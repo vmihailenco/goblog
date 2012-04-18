@@ -5,6 +5,8 @@
   <title>{{template "title" .}} - Vladimir Mihailenco</title>
   <link rel="stylesheet" type="text/css" href="/static/highlight/styles/default.css" />
   <link rel="stylesheet" type="text/css" href="/static/stylesheets/screen.css" />
+  {{define "cssExtra"}}{{end}}
+  {{template "cssExtra" .}}
   <link rel="alternate" type="application/atom+xml" title="vladimir-mihailenco.appspot.com - Atom" href="http://vladimir-mihailenco.appspot.com/feed/" />
   {{htmlSafe `<!--[if lt IE 9]>`}}
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -62,8 +64,8 @@
 </script>
 <script type="text/javascript" src="/static/bootstrap/js/bootstrap-dropdown.js"></script>
 <script type="text/javascript" src="/static/js/menu.js"></script>
-{{define "js_extra"}}{{end}}
-{{template "js_extra" .}}
+{{define "jsExtra"}}{{end}}
+{{template "jsExtra" .}}
 
 </body>
 

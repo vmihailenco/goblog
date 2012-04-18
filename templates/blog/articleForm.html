@@ -12,18 +12,26 @@
 </form>
 
 <div class="well">
-  <h1 id="titleHTML"></h1>
+  <div class="page-header">
+    <h1 id="titleHTML"></h1>
+  </div>
   <div id="textHTML"></div>
 </div>
 {{end}}
 
-{{define "js_extra"}}
-<script type="text/javascript" src="/static/js/markdown-preview.js"></script>
+{{define "cssExtra"}}
+<link rel="stylesheet" type="text/css" href="/static/codemirror/lib/codemirror.css">
+{{end}}
+
+{{define "jsExtra"}}
+<script src="/static/codemirror/lib/codemirror.js"></script>
+<script src="/static/codemirror/mode/xml/xml.js"></script>
+<script src="/static/codemirror/mode/markdown/markdown.js"></script>
+<script type="text/javascript" src="/static/js/markdown.js"></script>
+<script type="text/javascript" src="/static/js/article.js"></script>
 <script type="text/javascript">
   var settings = {
     MARKDOWN_PREVIEW_URL: "{{urlFor "markdownPreview"}}",
   }
-  preview($('#Title'), $('#titleHTML'));
-  previewMarkdown($('#Text'), $('#textHTML'));
 </script>
 {{end}}
