@@ -4,11 +4,13 @@
 
 {{define "content"}}
 {{range .articles}}
-  <div>
-    <h2>
-      <a href="{{.URL.String}}">{{.Title}}</a>
-      {{if not .IsPublic}}<small>private</small>{{end}}
-    </h2>
+  <div class="article">
+    <div class="article-header">
+      <h2>
+        <a href="{{.URL.String}}">{{.Title}}</a>
+        {{if not .IsPublic}}<small>private</small>{{end}}
+      </h2>
+    </div>
     <p>{{htmlSafe .HTML}}</p>
   </div>
 {{end}}
