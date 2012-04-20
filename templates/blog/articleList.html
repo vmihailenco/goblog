@@ -4,10 +4,14 @@
 
 {{define "content"}}
 {{range .articles}}
-  <h2>
-    <a href="{{.URL.String}}">{{.Title}}</a>
-    {{if not .IsPublic}}<small>private</small>{{end}}
-  </h2>
-  <p>{{htmlSafe .HTML}}</p>
+  <div>
+    <h2>
+      <a href="{{.URL.String}}">{{.Title}}</a>
+      {{if not .IsPublic}}<small>private</small>{{end}}
+    </h2>
+    <p>{{htmlSafe .HTML}}</p>
+  </div>
 {{end}}
+
+{{template "pager" .}}
 {{end}}

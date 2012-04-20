@@ -16,6 +16,8 @@ import (
 	"github.com/russross/blackfriday"
 
 	"core/entity"
+	"core/page"
+	"core/pager"
 )
 
 const (
@@ -24,6 +26,10 @@ const (
 
 func articleCacheKey(id int64) string {
 	return fmt.Sprintf("blog-article-%v", id)
+}
+
+func NewArticlePager(c appengine.Context, q *datastore.Query, page int) *pager.Pager {
+	return pager.NewPager(c, ARTICLE_KIND, q, page, 10)
 }
 
 type Article struct {
@@ -87,17 +93,19 @@ func GetArticleById(c appengine.Context, id int64) (*Article, error) {
 	return article, nil
 }
 
-func GetArticles(c appengine.Context, q *datastore.Query, limit int) (*[]Article, error) {
-	q = q.Limit(limit)
-	articles := make([]Article, 0, limit)
-	keys, err := q.GetAll(c, &articles)
+func GetArticles(c appengine.Context, p *pager.Pager) ([]*Article, error) {
+	q := p.Query()
+
+	articles := make([]*Article, 0, p.PageSize)
+	page, err := page.GetPage(c, q, p.PageSize, false, &articles)
 	if err != nil {
 		return nil, err
 	}
-	for i, key := range keys {
+	for i, key := range page.Keys {
 		articles[i].SetKey(key)
 	}
-	return &articles, nil
+	p.Update(page.Start, page.More)
+	return articles, nil
 }
 
 func (a *Article) Text() string {

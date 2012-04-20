@@ -1,0 +1,12 @@
+{{define "pager"}}
+{{if or .pager.HasPrev .pager.HasNext}}
+<ul class="pager">
+  <li class="{{if not .pager.HasPrev}} disabled{{end}}">
+    <a href="{{urlFor "articlePage" "page" .pager.PrevPage}}">Previous</a>
+  </li>
+  <li class="{{if not .pager.HasNext}} disabled{{end}}">
+    <a href="{{urlFor "articlePage" "page" .pager.NextPage}}">Next</a>
+  </li>
+</ul>
+{{end}}
+{{end}}

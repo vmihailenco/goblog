@@ -15,6 +15,10 @@ import (
 	"tmplt"
 )
 
+const (
+	PAGE_SIZE = 20
+)
+
 func ArticleHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
@@ -75,23 +79,34 @@ func ArticlePermaLinkHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectTo.Path, 302)
 }
 
-func ArticleListHandler(w http.ResponseWriter, r *http.Request) {
+func ArticlePageHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	user := auth.CurrentUser(c)
+
+	vars := mux.Vars(r)
+	page, err := strconv.ParseInt(vars["page"], 10, 32)
+	if err != nil {
+		page = 1
+	}
 
 	q := NewArticleQuery().Order("-CreatedOn")
 	if !user.IsAdmin {
 		q = q.Filter("IsPublic=", true)
 	}
 
-	articles, err := GetArticles(c, q, 20)
+	p := NewArticlePager(c, q, int(page))
+	articles, err := GetArticles(c, p)
 	if err != nil {
 		core.HandleError(c, w, err)
 		return
 	}
 
-	context := tmplt.Context{"articles": articles}
-	core.RenderTemplate(c, w, context, LAYOUT, "templates/blog/articleList.html")
+	context := tmplt.Context{
+		"articles": articles,
+		"pager":    p,
+	}
+	core.RenderTemplate(c, w, context,
+		LAYOUT, "templates/pager.html", "templates/blog/articleList.html")
 }
 
 func ArticleFeedHandler(w http.ResponseWriter, r *http.Request) {
@@ -100,15 +115,16 @@ func ArticleFeedHandler(w http.ResponseWriter, r *http.Request) {
 
 	q := NewArticleQuery().Filter("IsPublic=", true).Order("-CreatedOn")
 
-	articles, err := GetArticles(c, q, 20)
+	p := NewArticlePager(c, q, 1)
+	articles, err := GetArticles(c, p)
 	if err != nil {
 		core.HandleError(c, w, err)
 		return
 	}
 
 	var updatedOn time.Time
-	if articlesArr := *articles; len(articlesArr) > 0 {
-		updatedOn = articlesArr[0].CreatedOn
+	if len(articles) > 0 {
+		updatedOn = articles[0].CreatedOn
 	}
 
 	context := tmplt.Context{
