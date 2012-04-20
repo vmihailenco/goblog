@@ -2,7 +2,7 @@
   (function() {
     var $preview, delay, editor, timeout, update;
     delay = null;
-    timeout = 500;
+    timeout = 1000;
     $preview = $('#textHTML');
     editor = CodeMirror.fromTextArea(document.getElementById('Text'), {
       mode: 'markdown',
@@ -16,14 +16,16 @@
       }
     });
     update = function() {
-      return $preview.html(markdown(editor.getValue()));
+      return markdown(editor.getValue(), function(html) {
+        return $preview.html(html);
+      });
     };
     return delay = setTimeout(update, timeout);
   })();
   (function() {
     var $preview, $title, delay, timeout, update;
     delay = null;
-    timeout = 500;
+    timeout = 1000;
     $title = $('#Title');
     $preview = $('#titleHTML');
     $title.keyup(function() {

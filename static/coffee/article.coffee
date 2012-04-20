@@ -1,6 +1,6 @@
 do ->
   delay = null
-  timeout = 500
+  timeout = 1000
 
   $preview = $('#textHTML')
 
@@ -15,14 +15,14 @@ do ->
       delay = setTimeout update, timeout
 
   update = ->
-    $preview.html markdown(editor.getValue())
+    markdown editor.getValue(), (html) -> $preview.html html
 
   delay = setTimeout update, timeout
 
 
 do ->
   delay = null
-  timeout = 500
+  timeout = 1000
 
   $title = $('#Title')
   $preview = $('#titleHTML')
