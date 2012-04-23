@@ -18,26 +18,26 @@ func NewTmpltHolder() *TmpltHolder {
 
 var Holder = NewTmpltHolder()
 
-type NewFunc func(string) (*template.Template, error)
+type NewFunc func() (*template.Template, error)
 
-func (h *TmpltHolder) Get(filename string, newFunc NewFunc) (*template.Template, error) {
-	if t, ok := h.templateCache[filename]; ok {
+func (h *TmpltHolder) Get(key string, newFunc NewFunc) (*template.Template, error) {
+	if t, ok := h.templateCache[key]; ok {
 		return t, nil
 	}
 
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 
-	if t, ok := h.templateCache[filename]; ok {
+	if t, ok := h.templateCache[key]; ok {
 		return t, nil
 	}
 
-	t, err := newFunc(filename)
+	t, err := newFunc()
 	if err != nil {
 		return nil, err
 	}
 
-	h.templateCache[filename] = t
+	h.templateCache[key] = t
 
 	return t, nil
 }

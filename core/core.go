@@ -1,9 +1,12 @@
 package core
 
 import (
+	"bytes"
 	"html/template"
+	"io"
 	"net/http"
 	"path"
+	"strings"
 
 	"appengine"
 	"code.google.com/p/gorilla/mux"
@@ -23,44 +26,32 @@ var (
 func init() {
 	Router.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 	Router.HandleFunc("/500.html", InternalErrorHandler).Name("internalError")
-	Router.HandleFunc("/profile/", TemplateHandler("templates/layout.html", "templates/profile.html")).Name("profile")
+	Router.HandleFunc("/profile/", TemplateHandler("templates/profile.html", "templates/layout.html")).Name("profile")
 
 	http.Handle("/", NewProfilingHandler(Router))
 }
 
 func RenderTemplate(c appengine.Context, w http.ResponseWriter, context tmplt.Context, templateNames ...string) {
-	var (
-		t   *template.Template
-		err error
-	)
-
 	if len(templateNames) == 0 {
 		panic("expected at least 1 template, but got 0")
 	}
 
-	for _, name := range templateNames {
-		newFunc := func(filename string) (*template.Template, error) {
-			var newT *template.Template
-			if t == nil {
-				newT = AddTemplateFuncs(template.New(path.Base(filename)))
-			} else {
-				newT, err = t.Clone()
-				if err != nil {
-					return nil, err
-				}
-			}
-			newT, err = newT.ParseFiles(filename)
-			if err != nil {
-				return nil, err
-			}
-			return newT, nil
-		}
+	newFunc := func() (*template.Template, error) {
+		var err error
 
-		t, err = tmplt.Holder.Get(name, newFunc)
+		newT := template.New(path.Base(templateNames[len(templateNames)-1]))
+		newT = AddTemplateFuncs(newT)
+		newT, err = newT.ParseFiles(templateNames...)
 		if err != nil {
-			HandleError(c, w, err)
-			return
+			return nil, err
 		}
+		return newT, nil
+	}
+
+	t, err := tmplt.Holder.Get(strings.Join(templateNames, ","), newFunc)
+	if err != nil {
+		HandleError(c, w, err)
+		return
 	}
 
 	if context == nil {
@@ -74,9 +65,12 @@ func RenderTemplate(c appengine.Context, w http.ResponseWriter, context tmplt.Co
 		w.Header().Add("content-type", "text/html")
 	}
 
-	err = t.Execute(w, context)
+	buf := &bytes.Buffer{}
+	err = t.Execute(buf, context)
 	if err != nil {
 		HandleError(c, w, err)
 		return
 	}
+
+	io.Copy(w, buf)
 }

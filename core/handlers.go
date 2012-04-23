@@ -9,10 +9,10 @@ import (
 	"appengine"
 )
 
-func TemplateHandler(layout, name string) http.HandlerFunc {
+func TemplateHandler(templateNames ...string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := appengine.NewContext(r)
-		RenderTemplate(c, w, nil, layout, name)
+		RenderTemplate(c, w, nil, templateNames...)
 	}
 }
 
@@ -24,7 +24,7 @@ func InternalErrorHandler(w http.ResponseWriter, r *http.Request) {
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	w.WriteHeader(http.StatusNotFound)
-	RenderTemplate(c, w, nil, LAYOUT, "templates/404.html")
+	RenderTemplate(c, w, nil, "templates/404.html", LAYOUT)
 }
 
 type ProfilingHandler struct {

@@ -44,7 +44,7 @@ func ArticleHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	context := tmplt.Context{"article": article}
-	core.RenderTemplate(c, w, context, LAYOUT, "templates/blog/article.html")
+	core.RenderTemplate(c, w, context, "templates/blog/article.html", LAYOUT)
 }
 
 func ArticlePermaLinkHandler(w http.ResponseWriter, r *http.Request) {
@@ -106,7 +106,7 @@ func ArticlePageHandler(w http.ResponseWriter, r *http.Request) {
 		"pager":    p,
 	}
 	core.RenderTemplate(c, w, context,
-		LAYOUT, "templates/pager.html", "templates/blog/articleList.html")
+		"templates/blog/articleList.html", "templates/pager.html", LAYOUT)
 }
 
 func ArticleFeedHandler(w http.ResponseWriter, r *http.Request) {
@@ -173,7 +173,8 @@ func ArticleCreateHandler(w http.ResponseWriter, r *http.Request) {
 	context := map[string]interface{}{
 		"form": form,
 	}
-	core.RenderTemplate(c, w, context, LAYOUT, "templates/blog/articleForm.html", "templates/blog/articleCreate.html")
+	core.RenderTemplate(c, w, context,
+		"templates/blog/articleCreate.html", "templates/blog/articleForm.html", LAYOUT)
 }
 
 func ArticleUpdateHandler(w http.ResponseWriter, r *http.Request) {
@@ -229,7 +230,8 @@ func ArticleUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		"article": article,
 		"form":    form,
 	}
-	core.RenderTemplate(c, w, context, LAYOUT, "templates/blog/articleForm.html", "templates/blog/articleUpdate.html")
+	core.RenderTemplate(c, w, context,
+		"templates/blog/articleUpdate.html", "templates/blog/articleForm.html", LAYOUT)
 }
 
 func MarkdownPreviewHandler(w http.ResponseWriter, r *http.Request) {
