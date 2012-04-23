@@ -1,9 +1,9 @@
 {{define "title"}}{{.article.Title}}{{end}}
 
 {{define "contentTitle"}}
-  {{.article.Title}}
-  {{if not .article.IsPublic}} <small>private</small>{{end}}
-  <small><a href="{{.article.UpdateURL.String}}">edit</a></small>
+{{.article.Title}}
+{{if not .article.IsPublic}} <small>private</small>{{end}}
+{{if .user.IsAdmin}}<small><a href="{{.article.UpdateURL.String}}">edit</a></small>{{end}}
 {{end}}
 
 {{define "content"}}
