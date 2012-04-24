@@ -39,8 +39,9 @@ type Article struct {
 	TextBytes []byte
 	HTMLBytes []byte
 
-	IsPublic  bool
-	CreatedOn time.Time
+	ViewsCount int
+	IsPublic   bool
+	CreatedOn  time.Time
 }
 
 func NewArticle() *Article {
@@ -53,20 +54,22 @@ func NewArticleQuery() *datastore.Query {
 	return datastore.NewQuery(ARTICLE_KIND)
 }
 
-func GetArticleById(c appengine.Context, id int64) (*Article, error) {
+func GetArticleById(c appengine.Context, id int64, useCache bool) (*Article, error) {
 	article := NewArticle()
 	articleCacheKey := articleCacheKey(id)
 
-	if item, err := memcache.Get(c, articleCacheKey); err == nil {
-		dec := gob.NewDecoder(bytes.NewBuffer(item.Value))
-		err = dec.Decode(article)
-		if err == nil {
-			return article, nil
-		} else {
-			c.Errorf("error decoding article: %v", err)
+	if useCache {
+		if item, err := memcache.Get(c, articleCacheKey); err == nil {
+			dec := gob.NewDecoder(bytes.NewBuffer(item.Value))
+			err = dec.Decode(article)
+			if err == nil {
+				return article, nil
+			} else {
+				c.Errorf("error decoding article: %v", err)
+			}
+		} else if err != memcache.ErrCacheMiss {
+			c.Errorf("error getting item: %v", err)
 		}
-	} else if err != memcache.ErrCacheMiss {
-		c.Errorf("error getting item: %v", err)
 	}
 
 	key := datastore.NewKey(c, "article", "", id, nil)
@@ -140,6 +143,20 @@ func (a *Article) PermaURL() (*url.URL, error) {
 
 func (a *Article) UpdateURL() (*url.URL, error) {
 	return Router.GetRoute("articleUpdate").URL("id", strconv.FormatInt(a.Key().IntID(), 10))
+}
+
+func ChangeArticleViewsCount(c appengine.Context, key *datastore.Key, delta int) error {
+	article := NewArticle()
+	return datastore.RunInTransaction(c, func(c appengine.Context) error {
+		if err := datastore.Get(c, key, article); err != nil {
+			return err
+		}
+		article.ViewsCount += delta
+		if _, err := datastore.Put(c, key, article); err != nil {
+			return err
+		}
+		return nil
+	}, nil)
 }
 
 func CreateArticle(c appengine.Context, title string, text string, isPublic bool) (*Article, error) {

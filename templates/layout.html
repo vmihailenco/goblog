@@ -21,7 +21,7 @@
       <div class="nav-collapse">
       <ul class="nav">
         <li><a href="{{urlFor "home"}}">Home</a></li>
-        {{if .user.IsAuth}}
+        {{if .user.IsAdmin}}
           <li><a href="{{urlFor "articleCreate"}}">Add article</a></li>
         {{end}}
         <li><a href="{{urlFor "profile"}}">Profile</a></li>

@@ -3,6 +3,7 @@ package blog
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"appengine"
@@ -19,8 +20,18 @@ const (
 	PAGE_SIZE = 20
 )
 
+func isViewedArticle(viewedArticles []string, id string) bool {
+	for _, viewedId := range viewedArticles {
+		if viewedId == id {
+			return true
+		}
+	}
+	return false
+}
+
 func ArticleHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
+	user := auth.CurrentUser(c)
 
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)
@@ -29,16 +40,34 @@ func ArticleHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	article, err := GetArticleById(c, id)
+	article, err := GetArticleById(c, id, !user.IsAdmin)
 	if err != nil {
 		core.HandleNotFound(c, w)
 		return
 	}
 
-	if !article.IsPublic {
-		user := auth.CurrentUser(c)
-		if !user.IsAdmin {
-			core.HandleAuthRequired(c, w)
+	if !article.IsPublic && !user.IsAdmin {
+		core.HandleAuthRequired(c, w)
+		return
+	}
+
+	viewedArticles := make([]string, 0)
+	if cookie, err := r.Cookie("viewedArticles"); err != http.ErrNoCookie {
+		viewedArticles = strings.Split(cookie.Value, ",")
+	}
+
+	articleID := strconv.FormatInt(article.Key().IntID(), 32)
+	if !isViewedArticle(viewedArticles, articleID) {
+		viewedArticles = append(viewedArticles, articleID)
+		http.SetCookie(w, &http.Cookie{
+			Name:    "viewedArticles",
+			Value:   strings.Join(viewedArticles, ","),
+			Path:    "/",
+			Expires: time.Now().Add(time.Duration(30*24) * time.Hour),
+		})
+
+		if err := ChangeArticleViewsCount(c, article.Key(), +1); err != nil {
+			core.HandleError(c, w, err)
 			return
 		}
 	}
@@ -57,7 +86,7 @@ func ArticlePermaLinkHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	article, err := GetArticleById(c, id)
+	article, err := GetArticleById(c, id, true)
 	if err != nil {
 		core.HandleNotFound(c, w)
 		return
@@ -192,7 +221,7 @@ func ArticleUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	article, err := GetArticleById(c, id)
+	article, err := GetArticleById(c, id, false)
 	if err != nil {
 		core.HandleNotFound(c, w)
 		return
