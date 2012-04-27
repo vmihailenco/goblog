@@ -7,9 +7,11 @@ handlers:
 - url: /(robots\.txt|favicon\.ico)
   static_files: static/\1
   upload: static/.*
+  expiration: 90d
 
 - url: /static
   static_dir: static
+  expiration: 30d
 
 - url: .*
   script: _go_app
