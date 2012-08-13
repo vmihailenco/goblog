@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"appengine"
+	"appengine/blobstore"
 	"appengine/user"
 	"github.com/vmihailenco/gforms"
 
@@ -20,9 +21,10 @@ func AddTemplateFuncs(t *template.Template) *template.Template {
 
 		"htmlSafe": htmlSafe,
 
-		"urlFor":    urlFor,
-		"loginUrl":  loginUrl,
-		"logoutUrl": logoutUrl,
+		"urlFor":             urlFor,
+		"loginURL":           loginURL,
+		"logoutURL":          logoutURL,
+		"blobstoreUploadURL": blobstoreUploadURL,
 
 		"render":      gforms.Render,
 		"renderLabel": gforms.RenderLabel,
@@ -63,17 +65,21 @@ func urlFor(name string, pairs ...interface{}) string {
 	return url.String()
 }
 
-func loginUrl(context tmplt.Context, redirectTo string) (string, error) {
+func loginURL(context tmplt.Context, redirectTo string) (string, error) {
 	c := context["appengineContext"].(appengine.Context)
 	return user.LoginURL(c, redirectTo)
 }
 
-func logoutUrl(context tmplt.Context, redirectTo string) (string, error) {
+func logoutURL(context tmplt.Context, redirectTo string) (string, error) {
 	c := context["appengineContext"].(appengine.Context)
 	return user.LogoutURL(c, redirectTo)
 }
 
-func isAdmin(context tmplt.Context) bool {
+func blobstoreUploadURL(context tmplt.Context, url string) (string, error) {
 	c := context["appengineContext"].(appengine.Context)
-	return user.IsAdmin(c)
+	uploadURL, err := blobstore.UploadURL(c, url, nil)
+	if err != nil {
+		return "", err
+	}
+	return uploadURL.Path, nil
 }

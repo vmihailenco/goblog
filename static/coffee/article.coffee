@@ -35,3 +35,15 @@ do ->
     $preview.text $title.val()
 
   delay = setTimeout update, timeout
+
+
+do ->
+  $('#Image').fileupload
+    submit: (e, data) ->
+      $this = $ this
+      $.ajax
+        url: settings.IMAGE_UPLOAD_URL
+        success: (result) ->
+          data.url = result.url
+          $this.fileupload 'send', data
+      false

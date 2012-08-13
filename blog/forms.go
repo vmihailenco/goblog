@@ -13,15 +13,15 @@ type ArticleForm struct {
 
 func NewArticleForm(article *Article) *ArticleForm {
 	title := gforms.NewStringField()
-	title.SetMinLen(1)
-	title.SetMaxLen(500)
+	title.MinLen = 1
+	title.MaxLen = 500
 
 	text := gforms.NewTextareaStringField()
-	text.SetMinLen(1)
+	text.MinLen = 1
 
 	isPublic := gforms.NewBoolField()
-	isPublic.SetIsRequired(false)
-	isPublic.SetLabel("Is public?")
+	isPublic.IsRequired = false
+	isPublic.Label = "Is public?"
 
 	if article != nil {
 		title.SetInitial(article.Title)

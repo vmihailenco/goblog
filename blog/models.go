@@ -133,16 +133,33 @@ func (a *Article) Slug() string {
 }
 
 func (a *Article) URL() (*url.URL, error) {
-	return Router.GetRoute("article").URL("id", strconv.FormatInt(a.Key().IntID(), 10),
-		"slug", a.Slug())
+	return Router.GetRoute("article").URL(
+		"id",
+		strconv.FormatInt(a.Key().IntID(), 10),
+		"slug",
+		a.Slug(),
+	)
 }
 
 func (a *Article) PermaURL() (*url.URL, error) {
-	return Router.GetRoute("articlePermaLink").URL("id", strconv.FormatInt(a.Key().IntID(), 10))
+	return Router.GetRoute("articlePermaLink").URL(
+		"id",
+		strconv.FormatInt(a.Key().IntID(), 10),
+	)
 }
 
 func (a *Article) UpdateURL() (*url.URL, error) {
-	return Router.GetRoute("articleUpdate").URL("id", strconv.FormatInt(a.Key().IntID(), 10))
+	return Router.GetRoute("articleUpdate").URL(
+		"id",
+		strconv.FormatInt(a.Key().IntID(), 10),
+	)
+}
+
+func (a *Article) DeleteURL() (*url.URL, error) {
+	return Router.GetRoute("articleDelete").URL(
+		"id",
+		strconv.FormatInt(a.Key().IntID(), 10),
+	)
 }
 
 func ChangeArticleViewsCount(c appengine.Context, key *datastore.Key, delta int) error {
@@ -170,19 +187,31 @@ func CreateArticle(c appengine.Context, title string, text string, isPublic bool
 	return a, nil
 }
 
-func UpdateArticle(c appengine.Context, a *Article, title string, text string, isPublic bool) error {
+func UpdateArticle(c appengine.Context, article *Article, title string, text string, isPublic bool) error {
 	textBytes := []byte(text)
 
-	a.Title = title
-	a.TextBytes = textBytes
-	a.HTMLBytes = blackfriday.MarkdownCommon(textBytes)
-	a.IsPublic = isPublic
+	article.Title = title
+	article.TextBytes = textBytes
+	article.HTMLBytes = blackfriday.MarkdownCommon(textBytes)
+	article.IsPublic = isPublic
 
-	if err := entity.Put(c, a); err != nil {
+	if err := entity.Put(c, article); err != nil {
 		return err
 	}
 
-	memcache.Delete(c, articleCacheKey(a.Key().IntID()))
+	memcache.Delete(c, articleCacheKey(article.Key().IntID()))
 
+	return nil
+}
+
+func DeleteArticle(c appengine.Context, article *Article) error {
+	err := datastore.Delete(c, article.Key())
+	if err != nil {
+		return err
+	}
+	err = memcache.Delete(c, articleCacheKey(article.Key().IntID()))
+	if err != nil {
+		return err
+	}
 	return nil
 }

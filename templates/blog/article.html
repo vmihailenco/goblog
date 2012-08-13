@@ -5,6 +5,7 @@
 {{if .user.IsAdmin}}<small>{{.article.ViewsCount}} views</small>{{end}}
 {{if not .article.IsPublic}} <small>private</small>{{end}}
 {{if .user.IsAdmin}}<small><a href="{{.article.UpdateURL.String}}">edit</a></small>{{end}}
+{{if .user.IsAdmin}}<small><a href="{{.article.DeleteURL.String}}">delete</a></small>{{end}}
 {{end}}
 
 {{define "content"}}

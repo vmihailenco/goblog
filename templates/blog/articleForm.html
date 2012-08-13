@@ -1,7 +1,7 @@
 {{define "contentTitle"}}{{template "title"}}{{end}}
 
 {{define "content"}}
-<form method="post" class="well article">
+<form method="post" enctype="multipart/form-data" action="{{urlFor "articleCreate" | blobstoreUploadURL .}}" class="well article">
   {{render .form.Title "class" "span6"}}
   {{render .form.Text "class" "span6" "rows" "20"}}
   {{render .form.IsPublic}}
@@ -27,11 +27,12 @@
 <script src="/static/codemirror/lib/codemirror.js"></script>
 <script src="/static/codemirror/mode/xml/xml.js"></script>
 <script src="/static/codemirror/mode/markdown/markdown.js"></script>
-<script type="text/javascript" src="/static/js/markdown.js"></script>
-<script type="text/javascript" src="/static/js/article.js"></script>
-<script type="text/javascript">
+
+<script src="/static/js/markdown.js"></script>
+<script src="/static/js/article.js"></script>
+<script>
   var settings = {
-    MARKDOWN_PREVIEW_URL: "{{urlFor "markdownPreview"}}",
+    MARKDOWN_PREVIEW_URL: "{{urlFor "markdownPreview"}}"
   }
 </script>
 {{end}}

@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"appengine"
+	"appengine/blobstore"
 	"code.google.com/p/gorilla/mux"
 	"github.com/russross/blackfriday"
 	"github.com/vmihailenco/gforms"
+	"github.com/vmihailenco/gforms/gaeforms"
 
 	"auth"
 	"core"
@@ -27,6 +29,28 @@ func isViewedArticle(viewedArticles []string, id string) bool {
 		}
 	}
 	return false
+}
+
+func ImageUploadURLHandler(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	imageUploadURL, err := Router.GetRoute("imageUpload").URL()
+	if err != nil {
+		core.HandleError(c, w, err)
+		return
+	}
+
+	uploadURL, err := blobstore.UploadURL(c, imageUploadURL.Path, nil)
+	if err != nil {
+		core.HandleError(c, w, err)
+		return
+	}
+
+	core.HandleJSON(c, w, map[string]string{"url": uploadURL.Path})
+}
+
+func ImageUploadHandler(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func ArticleHandler(w http.ResponseWriter, r *http.Request) {
@@ -174,12 +198,13 @@ func ArticleCreateHandler(w http.ResponseWriter, r *http.Request) {
 	form := NewArticleForm(nil)
 
 	if r.Method == "POST" {
-		if err := r.ParseForm(); err != nil {
+		blobs, values, err := blobstore.ParseUpload(r)
+		if err != nil {
 			core.HandleError(c, w, err)
 			return
 		}
 
-		if gforms.IsFormValid(form, r.Form) {
+		if gaeforms.IsBlobstoreFormValid(form, blobs, values) {
 			article, err := CreateArticle(c,
 				form.Title.Value(),
 				form.Text.Value(),
@@ -261,6 +286,36 @@ func ArticleUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	core.RenderTemplate(c, w, context,
 		"templates/blog/articleUpdate.html", "templates/blog/articleForm.html", LAYOUT)
+}
+
+func ArticleDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	user := core.AdminUser(c, w)
+	if user == nil {
+		return
+	}
+
+	vars := mux.Vars(r)
+	id, err := strconv.ParseInt(vars["id"], 10, 64)
+	if err != nil {
+		core.HandleError(c, w, err)
+		return
+	}
+
+	article, err := GetArticleById(c, id, false)
+	if err != nil {
+		core.HandleNotFound(c, w)
+		return
+	}
+
+	err = DeleteArticle(c, article)
+	if err != nil {
+		core.HandleError(c, w, err)
+		return
+	}
+
+	http.Redirect(w, r, "/", 302)
 }
 
 func MarkdownPreviewHandler(w http.ResponseWriter, r *http.Request) {
